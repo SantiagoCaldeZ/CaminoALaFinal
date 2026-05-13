@@ -1,0 +1,15 @@
+export const BALANCE = {
+  initialEnergy: 100,
+  initialMomentum: 50,
+  totalMoments: 8,
+  cardsPerHand: 4,
+  randomMin: -8,
+  randomMax: 8,
+  goalThreshold: 89,
+  shotThreshold: 79,
+  chanceThreshold: 66,
+  possessionThreshold: 51,
+  neutralThreshold: 36,
+  minValue: 0,
+  maxValue: 100,
+} as const;
