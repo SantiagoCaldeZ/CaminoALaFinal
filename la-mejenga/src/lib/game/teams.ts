@@ -1,170 +1,306 @@
-import type { Team } from "./types";
+import type { Player as MatchPlayer, Team as MatchTeam } from "./types";
+
+export type TeamStyle = MatchTeam["style"];
+
+type TeamStats = {
+  attack: number;
+  defense: number;
+  midfield: number;
+  energy: number;
+  mentality: number;
+};
+
+function clampStat(value: number): number {
+  return Math.max(40, Math.min(95, Math.round(value)));
+}
+
+function createRoster(teamId: string, stats: TeamStats): MatchPlayer[] {
+  return [
+    {
+      id: `${teamId}-portero`,
+      name: "Kevin",
+      nickname: "Motorcito",
+      role: "goalkeeper",
+      attack: clampStat(stats.attack - 25),
+      defense: clampStat(stats.defense + 12),
+      technique: clampStat(stats.midfield - 8),
+      physical: clampStat(stats.energy),
+      mentality: clampStat(stats.mentality + 4),
+      stamina: clampStat(stats.energy),
+      trait: "Responde bien cuando el equipo está bajo presión.",
+    },
+    {
+      id: `${teamId}-defensa`,
+      name: "Ariel",
+      nickname: "El Leñero",
+      role: "defender",
+      attack: clampStat(stats.attack - 12),
+      defense: clampStat(stats.defense + 8),
+      technique: clampStat(stats.midfield - 4),
+      physical: clampStat(stats.energy + 4),
+      mentality: clampStat(stats.mentality),
+      stamina: clampStat(stats.energy + 2),
+      trait: "Fuerte en cruces, bloqueos y jugadas divididas.",
+    },
+    {
+      id: `${teamId}-medio`,
+      name: "Sebas",
+      nickname: "El Cerebro",
+      role: "midfielder",
+      attack: clampStat(stats.attack - 2),
+      defense: clampStat(stats.defense),
+      technique: clampStat(stats.midfield + 8),
+      physical: clampStat(stats.energy - 2),
+      mentality: clampStat(stats.mentality + 6),
+      stamina: clampStat(stats.energy),
+      trait: "Mejora el control del partido y las cartas de medio campo.",
+    },
+    {
+      id: `${teamId}-extremo`,
+      name: "Leo",
+      nickname: "El Crack",
+      role: "forward",
+      attack: clampStat(stats.attack + 7),
+      defense: clampStat(stats.defense - 14),
+      technique: clampStat(stats.midfield + 4),
+      physical: clampStat(stats.energy),
+      mentality: clampStat(stats.mentality),
+      stamina: clampStat(stats.energy),
+      trait: "Peligroso en regates, paredes y ataques rápidos.",
+    },
+    {
+      id: `${teamId}-delantero`,
+      name: "Bryan",
+      nickname: "Tanque",
+      role: "forward",
+      attack: clampStat(stats.attack + 10),
+      defense: clampStat(stats.defense - 18),
+      technique: clampStat(stats.midfield),
+      physical: clampStat(stats.energy + 5),
+      mentality: clampStat(stats.mentality + 2),
+      stamina: clampStat(stats.energy - 2),
+      trait: "Mejora en centros, choques y jugadas dentro del área.",
+    },
+  ];
+}
+
+export type Team = MatchTeam & {
+  shortName: string;
+  city: string;
+  colors: {
+    primary: string;
+    secondary: string;
+  };
+  style: TeamStyle;
+  description: string;
+  stats: {
+    attack: number;
+    defense: number;
+    midfield: number;
+    energy: number;
+    mentality: number;
+  };
+};
 
 export const TEAMS: Team[] = [
   {
-    id: "los-del-parque",
-    name: "Los del Parque",
-    style: "balanced",
-    description:
-      "Un equipo equilibrado, ordenado y confiable. No domina en una sola área, pero puede competir bien en casi cualquier situación.",
-    strengths: ["Juego colectivo", "Equilibrio", "Mentalidad estable"],
-    weaknesses: ["No tiene una especialidad dominante", "Puede sufrir contra equipos muy físicos"],
-    players: [
-      {
-        id: "nico-el-seguro",
-        name: "Nico",
-        nickname: "El Seguro",
-        role: "goalkeeper",
-        attack: 25,
-        defense: 72,
-        technique: 45,
-        physical: 60,
-        mentality: 70,
-        stamina: 65,
-        trait: "Ataja mejor en momentos de alta presión.",
-      },
-      {
-        id: "mau-el-ordenado",
-        name: "Mau",
-        nickname: "El Ordenado",
-        role: "defender",
-        attack: 35,
-        defense: 76,
-        technique: 55,
-        physical: 68,
-        mentality: 64,
-        stamina: 70,
-        trait: "Reduce errores defensivos en jugadas cerradas.",
-      },
-      {
-        id: "sebas-el-cerebro",
-        name: "Sebas",
-        nickname: "El Cerebro",
-        role: "midfielder",
-        attack: 58,
-        defense: 55,
-        technique: 78,
-        physical: 55,
-        mentality: 72,
-        stamina: 68,
-        trait: "Mejora cartas relacionadas con pase y control.",
-      },
-      {
-        id: "leo-el-crack",
-        name: "Leo",
-        nickname: "El Crack",
-        role: "forward",
-        attack: 80,
-        defense: 28,
-        technique: 76,
-        physical: 58,
-        mentality: 63,
-        stamina: 62,
-        trait: "Mejora en jugadas decisivas, pero consume más energía.",
-      },
-      {
-        id: "dani-comodin",
-        name: "Dani",
-        nickname: "Comodín",
-        role: "utility",
-        attack: 60,
-        defense: 60,
-        technique: 60,
-        physical: 60,
-        mentality: 60,
-        stamina: 70,
-        trait: "Se adapta bien a cualquier situación del partido.",
-      },
-    ],
-  },
-  {
     id: "cemento-fc",
     name: "Cemento FC",
+    shortName: "Cemento",
+    city: "Barrio La Cantera",
+    colors: {
+      primary: "#22c55e",
+      secondary: "#0f172a",
+    },
+    style: "balanced",
+    description:
+      "Un equipo ordenado, intenso y bastante completo. No siempre brilla, pero compite todos los partidos.",
+    strengths: ["Orden táctico", "Presión constante", "Buen cierre de jugadas"],
+    weaknesses: ["No siempre domina", "Puede sufrir ante equipos muy rápidos"],
+    players: createRoster("cemento-fc", {
+      attack: 72,
+      defense: 68,
+      midfield: 70,
+      energy: 78,
+      mentality: 74,
+    }),
+    stats: {
+      attack: 72,
+      defense: 68,
+      midfield: 70,
+      energy: 78,
+      mentality: 74,
+    },
+  },
+  {
+    id: "los-del-parque",
+    name: "Los del Parque",
+    shortName: "Parque",
+    city: "La Plaza",
+    colors: {
+      primary: "#fb7185",
+      secondary: "#111827",
+    },
+    style: "technical",
+    description:
+      "Un equipo atrevido, rápido y peligroso arriba. Puede hacer mucho daño, pero también deja espacios.",
+    strengths: ["Ataque rápido", "Transiciones peligrosas", "Mucho peso ofensivo"],
+    weaknesses: ["Defensa vulnerable", "Deja espacios atrás"],
+    players: createRoster("los-del-parque", {
+      attack: 78,
+      defense: 58,
+      midfield: 68,
+      energy: 72,
+      mentality: 70,
+    }),
+    stats: {
+      attack: 78,
+      defense: 58,
+      midfield: 68,
+      energy: 72,
+      mentality: 70,
+    },
+  },
+  {
+    id: "barrio-norte",
+    name: "Barrio Norte",
+    shortName: "Norte",
+    city: "Barrio Norte",
+    colors: {
+      primary: "#38bdf8",
+      secondary: "#020617",
+    },
+    style: "technical",
+    description:
+      "Equipo de toque, paciencia y buenas decisiones. No es el más físico, pero sabe manejar los partidos.",
+    strengths: ["Control del balón", "Buen mediocampo", "Lectura táctica"],
+    weaknesses: ["Menor fuerza física", "Puede sufrir partidos intensos"],
+    players: createRoster("barrio-norte", {
+      attack: 70,
+      defense: 64,
+      midfield: 80,
+      energy: 68,
+      mentality: 76,
+    }),
+    stats: {
+      attack: 70,
+      defense: 64,
+      midfield: 80,
+      energy: 68,
+      mentality: 76,
+    },
+  },
+  {
+    id: "atletico-pulperia",
+    name: "Atlético Pulpería",
+    shortName: "Pulpería",
+    city: "La Esquina",
+    colors: {
+      primary: "#facc15",
+      secondary: "#18181b",
+    },
     style: "physical",
     description:
-      "Un equipo físico y defensivo. Es fuerte en choques, presión y partidos cerrados, pero puede sufrir contra rivales técnicos.",
-    strengths: ["Defensa fuerte", "Juego físico", "Resistencia"],
-    weaknesses: ["Poca creatividad", "Menor técnica ofensiva", "Riesgo de faltas"],
-    players: [
-      {
-        id: "rolo-manos-duras",
-        name: "Rolo",
-        nickname: "Manos Duras",
-        role: "goalkeeper",
-        attack: 20,
-        defense: 78,
-        technique: 38,
-        physical: 72,
-        mentality: 62,
-        stamina: 65,
-        trait: "Mejor contra tiros potentes, peor contra tiros colocados.",
-      },
-      {
-        id: "chino-el-muro",
-        name: "Chino",
-        nickname: "El Muro",
-        role: "defender",
-        attack: 28,
-        defense: 84,
-        technique: 42,
-        physical: 82,
-        mentality: 66,
-        stamina: 74,
-        trait: "Mejora bloqueos y marcas físicas.",
-      },
-      {
-        id: "kevin-motorcito",
-        name: "Kevin",
-        nickname: "Motorcito",
-        role: "midfielder",
-        attack: 50,
-        defense: 68,
-        technique: 58,
-        physical: 76,
-        mentality: 64,
-        stamina: 82,
-        trait: "Gasta menos energía cuando el equipo presiona.",
-      },
-      {
-        id: "bryan-tanque",
-        name: "Bryan",
-        nickname: "Tanque",
-        role: "forward",
-        attack: 72,
-        defense: 40,
-        technique: 48,
-        physical: 84,
-        mentality: 58,
-        stamina: 68,
-        trait: "Mejora en centros, choques y jugadas aéreas.",
-      },
-      {
-        id: "ariel-el-lenero",
-        name: "Ariel",
-        nickname: "El Leñero",
-        role: "utility",
-        attack: 48,
-        defense: 72,
-        technique: 45,
-        physical: 86,
-        mentality: 52,
-        stamina: 70,
-        trait: "Roba más balones, pero aumenta el riesgo de falta.",
-      },
-    ],
+      "Un equipo fuerte, intenso y difícil de sacar del partido. Gana duelos, presiona y aguanta bien.",
+    strengths: ["Físico fuerte", "Presión intensa", "Buen desgaste del rival"],
+    weaknesses: ["Menos creatividad", "Puede depender demasiado del choque"],
+    players: createRoster("atletico-pulperia", {
+      attack: 66,
+      defense: 72,
+      midfield: 65,
+      energy: 84,
+      mentality: 72,
+    }),
+    stats: {
+      attack: 66,
+      defense: 72,
+      midfield: 65,
+      energy: 84,
+      mentality: 72,
+    },
+  },
+  {
+    id: "union-callejon",
+    name: "Unión Callejón",
+    shortName: "Callejón",
+    city: "El Callejón",
+    colors: {
+      primary: "#a78bfa",
+      secondary: "#111827",
+    },
+    style: "defensive",
+    description:
+      "Equipo cerrado, incómodo y paciente. No genera tanto, pero castiga cuando el rival se desespera.",
+    strengths: ["Bloque defensivo", "Paciencia", "Castigo al error rival"],
+    weaknesses: ["Poca producción ofensiva", "Le cuesta remontar partidos"],
+    players: createRoster("union-callejon", {
+      attack: 62,
+      defense: 80,
+      midfield: 66,
+      energy: 74,
+      mentality: 78,
+    }),
+    stats: {
+      attack: 62,
+      defense: 80,
+      midfield: 66,
+      energy: 74,
+      mentality: 78,
+    },
+  },
+  {
+    id: "real-lajuelita",
+    name: "Real Lajuelita",
+    shortName: "Lajuelita",
+    city: "Lajuelita",
+    colors: {
+      primary: "#f97316",
+      secondary: "#0f172a",
+    },
+    style: "balanced",
+    description:
+      "Equipo competitivo, con buen ritmo y capacidad para adaptarse según el partido.",
+    strengths: ["Ritmo competitivo", "Adaptabilidad", "Buen equilibrio general"],
+    weaknesses: ["No tiene una fortaleza dominante", "Puede ser irregular"],
+    players: createRoster("real-lajuelita", {
+      attack: 71,
+      defense: 69,
+      midfield: 72,
+      energy: 76,
+      mentality: 73,
+    }),
+    stats: {
+      attack: 71,
+      defense: 69,
+      midfield: 72,
+      energy: 76,
+      mentality: 73,
+    },
   },
 ];
 
-export function getTeamById(teamId: string): Team | undefined {
-  return TEAMS.find((team) => team.id === teamId);
+export function getTeamById(teamId: string | null | undefined): Team {
+  return TEAMS.find((team) => team.id === teamId) ?? TEAMS[0];
 }
 
-export function getDefaultRivalTeam(selectedTeamId: string): Team {
-  const rival = TEAMS.find((team) => team.id !== selectedTeamId);
+export function getRandomRivalTeam(playerTeamId: string): Team {
+  const availableTeams = TEAMS.filter((team) => team.id !== playerTeamId);
+  return availableTeams[Math.floor(Math.random() * availableTeams.length)] ?? TEAMS[0];
+}
 
-  if (!rival) {
-    throw new Error("No hay equipo rival disponible.");
-  }
+export function getTeamStyleLabel(style: TeamStyle): string {
+  const labels: Record<TeamStyle, string> = {
+    balanced: "Equilibrado",
+    defensive: "Defensivo",
+    physical: "Físico",
+    technical: "Técnico",
+    fast: "Rápido",
+    chaotic: "Caótico",
+  };
 
-  return rival;
+  return labels[style];
+}
+
+export function getDefaultRivalTeam(playerTeamId?: string): Team {
+  return TEAMS.find((team) => team.id !== playerTeamId) ?? TEAMS[1] ?? TEAMS[0];
 }

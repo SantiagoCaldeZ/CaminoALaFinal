@@ -71,44 +71,46 @@ export function getAvailableCardsForSituation(situation: MatchSituation): Tactic
   return uniqueById([...hand, ...fallback]).slice(0, BALANCE.cardsPerHand);
 }
 
-export function selectProtagonist(team: Team, situation: MatchSituation): Player {
-  if (situation.type === "attack") {
-    const attackers = team.players.filter(
-      (player) => player.role === "forward" || player.role === "midfielder" || player.role === "utility",
-    );
+function selectProtagonist(team: Team, card: TacticalCard): Player {
+  const players = team.players ?? [];
 
-    return pickRandom(attackers);
+  const preferredPlayers = players.filter((player) => {
+    if (card.type === "attack") {
+      return player.role === "forward" || player.role === "midfielder" || player.role === "utility";
+    }
+
+    if (card.type === "midfield") {
+      return player.role === "midfielder" || player.role === "utility";
+    }
+
+    if (card.type === "defense") {
+      return player.role === "defender" || player.role === "goalkeeper" || player.role === "utility";
+    }
+
+    return true;
+  });
+
+  if (preferredPlayers.length > 0) {
+    return pickRandom(preferredPlayers);
   }
 
-  if (situation.type === "defense") {
-    const defenders = team.players.filter(
-      (player) => player.role === "defender" || player.role === "midfielder" || player.role === "utility",
-    );
-
-    return pickRandom(defenders);
+  if (players.length > 0) {
+    return pickRandom(players);
   }
 
-  if (situation.type === "set_piece") {
-    const sortedByTechnique = [...team.players].sort(
-      (a, b) => b.attack + b.technique + b.mentality - (a.attack + a.technique + a.mentality),
-    );
-
-    return sortedByTechnique[0];
-  }
-
-  if (situation.type === "special") {
-    const sortedByMentality = [...team.players].sort(
-      (a, b) => b.attack + b.mentality - (a.attack + a.mentality),
-    );
-
-    return sortedByMentality[0];
-  }
-
-  const midfielders = team.players.filter(
-    (player) => player.role === "midfielder" || player.role === "utility",
-  );
-
-  return pickRandom(midfielders.length > 0 ? midfielders : team.players);
+  return {
+    id: `${team.id}-jugador-generico`,
+    name: team.name,
+    nickname: "El Equipo",
+    role: "midfielder",
+    attack: 60,
+    defense: 60,
+    technique: 60,
+    physical: 60,
+    mentality: 60,
+    stamina: 60,
+    trait: "Jugador genérico utilizado como respaldo.",
+  };
 }
 
 function applyEvent(matchState: MatchState, event: ReturnType<typeof resolvePlay>): MatchState {
@@ -135,8 +137,6 @@ export function playMoment({ matchState, playerCard }: PlayMomentParams): MatchS
   }
 
   const situation = getCurrentSituation(matchState);
-  const protagonist = selectProtagonist(matchState.playerTeam, situation);
-  const rivalProtagonist = selectProtagonist(matchState.rivalTeam, situation);
   const rivalAvailableCards = getAvailableCardsForSituation(situation);
 
   const rivalCard = chooseAiCard({
@@ -144,6 +144,9 @@ export function playMoment({ matchState, playerCard }: PlayMomentParams): MatchS
     availableCards: rivalAvailableCards,
     matchState,
   });
+
+  const protagonist = selectProtagonist(matchState.playerTeam, playerCard);
+  const rivalProtagonist = selectProtagonist(matchState.rivalTeam, rivalCard);
 
   const event = resolvePlay({
     matchState,
