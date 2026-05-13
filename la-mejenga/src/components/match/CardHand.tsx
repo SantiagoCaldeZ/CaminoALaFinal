@@ -1,13 +1,14 @@
-import type { TacticalCard } from "@/lib/game/types";
+import type { MatchSituation, TacticalCard } from "@/lib/game/types";
 import { TacticalCardView } from "./TacticalCardView";
 
 type CardHandProps = {
   cards: TacticalCard[];
+  situation: MatchSituation;
   currentEnergy: number;
   onSelectCard: (card: TacticalCard) => void;
 };
 
-export function CardHand({ cards, currentEnergy, onSelectCard }: CardHandProps) {
+export function CardHand({ cards, situation, currentEnergy, onSelectCard }: CardHandProps) {
   return (
     <section>
       <div className="mb-4 flex flex-wrap items-end justify-between gap-3">
@@ -23,6 +24,8 @@ export function CardHand({ cards, currentEnergy, onSelectCard }: CardHandProps) 
           <TacticalCardView
             key={card.id}
             card={card}
+            situation={situation}
+            currentEnergy={currentEnergy}
             disabled={card.energyCost > currentEnergy}
             onSelect={onSelectCard}
           />

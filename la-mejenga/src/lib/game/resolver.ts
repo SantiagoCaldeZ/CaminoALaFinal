@@ -50,19 +50,19 @@ function getRivalPressureModifier(params: ResolvePlayParams): number {
 
 function getCounterModifier(playerCard: TacticalCard, rivalCard: TacticalCard): number {
   if (playerCard.weakAgainst.includes(rivalCard.id)) {
-    return -12;
+    return BALANCE.weakCounterPenalty;
   }
 
   if (playerCard.strongAgainst.includes(rivalCard.id)) {
-    return 10;
+    return BALANCE.strongCounterBonus;
   }
 
   if (rivalCard.strongAgainst.includes(playerCard.id)) {
-    return -10;
+    return BALANCE.rivalStrongCounterPenalty;
   }
 
   if (rivalCard.weakAgainst.includes(playerCard.id)) {
-    return 8;
+    return BALANCE.rivalWeakCounterBonus;
   }
 
   return 0;
@@ -110,15 +110,15 @@ function getSituationModifier(params: ResolvePlayParams): number {
   let modifier = 0;
 
   if (situation.preferredCardTypes.includes(playerCard.type)) {
-    modifier += 6;
+    modifier += BALANCE.preferredTypeBonus;
   }
 
   if (playerCard.preferredSituations.includes(situation.id)) {
-    modifier += 8;
+    modifier += BALANCE.recommendedCardBonus;
   }
 
   if (playerCard.type === "special" && situation.id !== "ultima-jugada") {
-    modifier -= 5;
+    modifier -= BALANCE.specialCardEarlyPenalty;
   }
 
   return modifier;
@@ -140,59 +140,12 @@ function getRiskPenalty(card: TacticalCard): number {
   return 0;
 }
 
-function determineOutcome(
-  scoreValue: number,
-  playerCard: TacticalCard,
-  rivalCard: TacticalCard,
-): PlayOutcome {
-  const canScoreDirectly =
-    playerCard.type === "attack" ||
-    playerCard.id === "todo-o-nada" ||
-    playerCard.id === "ultima-jugada";
-
-  const canCreateGoal =
-    playerCard.type === "midfield" ||
-    playerCard.id === "la-hinchada-empuja";
-
-  const canRivalPunish =
-    rivalCard.type === "attack" ||
-    rivalCard.id === "todo-o-nada" ||
-    rivalCard.id === "ultima-jugada";
-  const playerIsExposed =
-    playerCard.risk >= 55 ||
-    playerCard.id === "todo-o-nada" ||
-    playerCard.id === "regate-individual" ||
-    playerCard.id === "tiro-lejano" ||
-    playerCard.id === "linea-adelantada";
-
-  const badHighRiskPlay =
-    scoreValue <= BALANCE.possessionThreshold && playerIsExposed && canRivalPunish;
-
-  if (badHighRiskPlay) {
-    return "rival_goal";
-  }
-
-  if (scoreValue <= 18 && playerCard.risk >= 55 && canRivalPunish) {
-    return "rival_goal";
-  }
-
+function determineOutcome(scoreValue: number, playerCard: TacticalCard, rivalCard: TacticalCard): PlayOutcome {
   if (scoreValue >= BALANCE.goalThreshold) {
-    if (canScoreDirectly) {
-      return "goal";
-    }
-
-    if (canCreateGoal && scoreValue >= BALANCE.goalThreshold + 4) {
-      return "goal";
-    }
-
-    return "chance_created";
+    return "goal";
   }
 
   if (scoreValue >= BALANCE.shotThreshold) {
-    if (!canScoreDirectly) {
-      return "chance_created";
-    }
-
     if (rivalCard.id === "bloque-bajo" || rivalCard.id === "anticipacion") {
       return "blocked";
     }

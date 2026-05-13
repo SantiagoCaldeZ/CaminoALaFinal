@@ -126,6 +126,7 @@ export function MatchScreen() {
 
               <CardHand
                 cards={availableCards}
+                situation={currentSituation}
                 currentEnergy={matchState.playerEnergy}
                 onSelectCard={handleSelectCard}
               />
