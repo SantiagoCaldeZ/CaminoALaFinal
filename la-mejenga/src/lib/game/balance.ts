@@ -7,9 +7,9 @@ export const BALANCE = {
   randomMin: -6,
   randomMax: 6,
 
-  goalThreshold: 92,
-  shotThreshold: 80,
-  chanceThreshold: 67,
+  goalThreshold: 94,
+  shotThreshold: 82,
+  chanceThreshold: 68,
   possessionThreshold: 52,
   neutralThreshold: 36,
 

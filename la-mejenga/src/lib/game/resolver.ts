@@ -141,11 +141,53 @@ function getRiskPenalty(card: TacticalCard): number {
 }
 
 function determineOutcome(scoreValue: number, playerCard: TacticalCard, rivalCard: TacticalCard): PlayOutcome {
+  const canScoreDirectly =
+    playerCard.type === "attack" ||
+    playerCard.id === "todo-o-nada" ||
+    playerCard.id === "ultima-jugada";
+
+  const canCreateGoal =
+    playerCard.type === "midfield" ||
+    playerCard.id === "la-hinchada-empuja";
+
+  const canRivalPunish =
+    rivalCard.type === "attack" ||
+    rivalCard.id === "todo-o-nada" ||
+    rivalCard.id === "ultima-jugada";
+
+  const playerIsExposed =
+    playerCard.risk >= 55 ||
+    playerCard.id === "todo-o-nada" ||
+    playerCard.id === "regate-individual" ||
+    playerCard.id === "tiro-lejano" ||
+    playerCard.id === "linea-adelantada";
+
+  const badHighRiskPlay =
+    scoreValue <= BALANCE.possessionThreshold + 8 &&
+    playerIsExposed &&
+    canRivalPunish;
+
+  if (badHighRiskPlay) {
+    return "rival_goal";
+  }
+
   if (scoreValue >= BALANCE.goalThreshold) {
-    return "goal";
+    if (canScoreDirectly) {
+      return "goal";
+    }
+
+    if (canCreateGoal && scoreValue >= BALANCE.goalThreshold + 6) {
+      return "goal";
+    }
+
+    return "chance_created";
   }
 
   if (scoreValue >= BALANCE.shotThreshold) {
+    if (!canScoreDirectly) {
+      return "chance_created";
+    }
+
     if (rivalCard.id === "bloque-bajo" || rivalCard.id === "anticipacion") {
       return "blocked";
     }
