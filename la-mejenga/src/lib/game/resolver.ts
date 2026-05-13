@@ -2,6 +2,7 @@ import { BALANCE } from "./balance";
 import { generateNarration } from "./narration";
 import type {
   MatchEvent,
+  MatchSituation,
   PlayOutcome,
   ResolvePlayParams,
   TacticalCard,
@@ -86,19 +87,19 @@ function getEnergyModifier(energy: number, card: TacticalCard): number {
 
 function getMomentumModifier(momentum: number): number {
   if (momentum >= 80) {
-    return 8;
+    return 5;
   }
 
   if (momentum >= 65) {
-    return 4;
+    return 2;
   }
 
   if (momentum <= 20) {
-    return -8;
+    return -5;
   }
 
   if (momentum <= 35) {
-    return -4;
+    return -2;
   }
 
   return 0;
@@ -140,51 +141,81 @@ function getRiskPenalty(card: TacticalCard): number {
   return 0;
 }
 
-function determineOutcome(scoreValue: number, playerCard: TacticalCard, rivalCard: TacticalCard): PlayOutcome {
-  const canScoreDirectly =
+function determineOutcome(
+  scoreValue: number,
+  playerCard: TacticalCard,
+  rivalCard: TacticalCard,
+  situation: MatchSituation,
+): PlayOutcome {
+  const canPlayerScoreDirectly =
     playerCard.type === "attack" ||
     playerCard.id === "todo-o-nada" ||
     playerCard.id === "ultima-jugada";
 
-  const canCreateGoal =
-    playerCard.type === "midfield" ||
-    playerCard.id === "la-hinchada-empuja";
-
-  const canRivalPunish =
+  const rivalCanPunish =
     rivalCard.type === "attack" ||
+    rivalCard.id === "anticipacion" ||
+    rivalCard.id === "linea-adelantada" ||
+    rivalCard.id === "barrida-fuerte" ||
+    rivalCard.id === "pelotazo" ||
     rivalCard.id === "todo-o-nada" ||
     rivalCard.id === "ultima-jugada";
 
   const playerIsExposed =
+    playerCard.type === "attack" ||
     playerCard.risk >= 55 ||
     playerCard.id === "todo-o-nada" ||
     playerCard.id === "regate-individual" ||
     playerCard.id === "tiro-lejano" ||
     playerCard.id === "linea-adelantada";
 
-  const badHighRiskPlay =
-    scoreValue <= BALANCE.possessionThreshold + 8 &&
-    playerIsExposed &&
-    canRivalPunish;
-
-  if (badHighRiskPlay) {
-    return "rival_goal";
-  }
+  const dangerousSituation =
+    situation.id === "presion-rival" ||
+    situation.id === "contraataque" ||
+    situation.id === "posesion-media" ||
+    situation.id === "ultima-jugada";
 
   if (scoreValue >= BALANCE.goalThreshold) {
-    if (canScoreDirectly) {
-      return "goal";
-    }
+    if (canPlayerScoreDirectly) {
+      const goalSafetyMargin = scoreValue - BALANCE.goalThreshold;
 
-    if (canCreateGoal && scoreValue >= BALANCE.goalThreshold + 6) {
-      return "goal";
+      if (goalSafetyMargin >= 8) {
+        return "goal";
+      }
+
+      return "chance_created";
     }
 
     return "chance_created";
   }
 
+  const veryBadResolution =
+    scoreValue <= BALANCE.possessionThreshold + 8;
+
+  const badResolutionInDanger =
+    scoreValue <= BALANCE.chanceThreshold + 4 &&
+    (playerIsExposed || dangerousSituation);
+
+  const rivalThreatValue =
+    rivalCard.basePower +
+    (rivalCard.type === "attack" ? 16 : 0) +
+    (rivalCanPunish ? 10 : 0) +
+    (playerIsExposed ? 8 : 0) +
+    (dangerousSituation ? 10 : 0) +
+    (veryBadResolution ? 16 : badResolutionInDanger ? 8 : 0) -
+    (playerCard.type === "defense" ? 14 : 0) -
+    (playerCard.id === "bloque-bajo" ? 12 : 0) -
+    (playerCard.id === "enfriar-el-partido" ? 8 : 0);
+
+  const rivalCounterWindow =
+    veryBadResolution || badResolutionInDanger;
+
+  if (rivalCanPunish && rivalCounterWindow && rivalThreatValue >= 0) {
+    return "rival_goal";
+  }
+
   if (scoreValue >= BALANCE.shotThreshold) {
-    if (!canScoreDirectly) {
+    if (!canPlayerScoreDirectly) {
       return "chance_created";
     }
 
@@ -234,37 +265,17 @@ function determineOutcome(scoreValue: number, playerCard: TacticalCard, rivalCar
   return "turnover";
 }
 
-function getScoringIntentModifier(playerCard: TacticalCard): number {
-  if (playerCard.id === "tiro-colocado") {
-    return 14;
-  }
-
-  if (playerCard.id === "pase-filtrado") {
-    return 12;
-  }
-
-  if (playerCard.id === "centro-al-area") {
-    return 10;
-  }
-
-  if (playerCard.id === "pared-rapida") {
-    return 10;
-  }
-
-  if (playerCard.id === "regate-individual") {
-    return 9;
-  }
-
-  if (playerCard.id === "tiro-lejano") {
+function getScoringIntentModifier(card: TacticalCard): number {
+  if (card.id === "todo-o-nada") {
     return 8;
   }
 
-  if (playerCard.id === "todo-o-nada") {
-    return 14;
+  if (card.id === "ultima-jugada") {
+    return 7;
   }
 
-  if (playerCard.id === "ultima-jugada") {
-    return 12;
+  if (card.type === "attack") {
+    return 3;
   }
 
   return 0;
@@ -276,32 +287,45 @@ function getMomentumChanges(outcome: PlayOutcome): {
 } {
   switch (outcome) {
     case "goal":
-      return { playerMomentumChange: 18, rivalMomentumChange: -15 };
+      return { playerMomentumChange: 10, rivalMomentumChange: -6 };
+
     case "rival_goal":
-      return { playerMomentumChange: -15, rivalMomentumChange: 18 };
+      return { playerMomentumChange: -10, rivalMomentumChange: 12 };
+
     case "shot_saved":
-      return { playerMomentumChange: 4, rivalMomentumChange: 8 };
+      return { playerMomentumChange: -3, rivalMomentumChange: 8 };
+
     case "shot_missed":
-      return { playerMomentumChange: -6, rivalMomentumChange: 4 };
+      return { playerMomentumChange: -7, rivalMomentumChange: 5 };
+
     case "chance_created":
-      return { playerMomentumChange: 8, rivalMomentumChange: -4 };
+      return { playerMomentumChange: 5, rivalMomentumChange: 0 };
+
     case "corner":
-      return { playerMomentumChange: 5, rivalMomentumChange: -2 };
+      return { playerMomentumChange: 3, rivalMomentumChange: 0 };
+
     case "foul":
-      return { playerMomentumChange: 4, rivalMomentumChange: -6 };
+      return { playerMomentumChange: 2, rivalMomentumChange: -3 };
+
     case "yellow_card":
-      return { playerMomentumChange: 6, rivalMomentumChange: -8 };
+      return { playerMomentumChange: 3, rivalMomentumChange: -5 };
+
     case "penalty":
-      return { playerMomentumChange: 12, rivalMomentumChange: -12 };
+      return { playerMomentumChange: 10, rivalMomentumChange: -8 };
+
     case "offside":
-      return { playerMomentumChange: -5, rivalMomentumChange: 5 };
+      return { playerMomentumChange: -6, rivalMomentumChange: 5 };
+
     case "turnover":
     case "interception":
-      return { playerMomentumChange: -7, rivalMomentumChange: 7 };
+      return { playerMomentumChange: -8, rivalMomentumChange: 8 };
+
     case "possession_kept":
-      return { playerMomentumChange: 3, rivalMomentumChange: -1 };
+      return { playerMomentumChange: 1, rivalMomentumChange: 1 };
+
     case "blocked":
-      return { playerMomentumChange: -2, rivalMomentumChange: 5 };
+      return { playerMomentumChange: -5, rivalMomentumChange: 7 };
+
     case "neutral":
     default:
       return { playerMomentumChange: 0, rivalMomentumChange: 0 };
@@ -338,7 +362,7 @@ export function resolvePlay(params: ResolvePlayParams): MatchEvent {
     riskPenalty;
 
   const scoreValue = clamp(Math.round(rawScore), 0, 120);
-  const outcome = determineOutcome(scoreValue, playerCard, rivalCard);
+  const outcome = determineOutcome(scoreValue, playerCard, rivalCard, situation);
 
   const playerEnergyChange = -playerCard.energyCost;
   const rivalEnergyChange = -rivalCard.energyCost;
