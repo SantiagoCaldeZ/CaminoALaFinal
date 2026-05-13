@@ -140,56 +140,139 @@ function getRiskPenalty(card: TacticalCard): number {
   return 0;
 }
 
-function determineOutcome(scoreValue: number, playerCard: TacticalCard, rivalCard: TacticalCard): PlayOutcome {
-  const canScore =
+function determineOutcome(
+  scoreValue: number,
+  playerCard: TacticalCard,
+  rivalCard: TacticalCard,
+): PlayOutcome {
+  const canScoreDirectly =
     playerCard.type === "attack" ||
     playerCard.id === "todo-o-nada" ||
     playerCard.id === "ultima-jugada";
-  if (scoreValue >= BALANCE.goalThreshold) {
-    return "goal";
+
+  const canCreateGoal =
+    playerCard.type === "midfield" ||
+    playerCard.id === "la-hinchada-empuja";
+
+  const canRivalPunish =
+    rivalCard.type === "attack" ||
+    rivalCard.id === "todo-o-nada" ||
+    rivalCard.id === "ultima-jugada";
+  const playerIsExposed =
+    playerCard.risk >= 55 ||
+    playerCard.id === "todo-o-nada" ||
+    playerCard.id === "regate-individual" ||
+    playerCard.id === "tiro-lejano" ||
+    playerCard.id === "linea-adelantada";
+
+  const badHighRiskPlay =
+    scoreValue <= BALANCE.possessionThreshold && playerIsExposed && canRivalPunish;
+
+  if (badHighRiskPlay) {
+    return "rival_goal";
+  }
+
+  if (scoreValue <= 18 && playerCard.risk >= 55 && canRivalPunish) {
+    return "rival_goal";
   }
 
   if (scoreValue >= BALANCE.goalThreshold) {
-    if (canScore) {
-        return "goal";
+    if (canScoreDirectly) {
+      return "goal";
     }
 
-    if (playerCard.id === "enfriar-el-partido") {
-        return "possession_kept";
-    }
-
-    if (playerCard.id === "la-hinchada-empuja") {
-        return "chance_created";
+    if (canCreateGoal && scoreValue >= BALANCE.goalThreshold + 4) {
+      return "goal";
     }
 
     return "chance_created";
+  }
+
+  if (scoreValue >= BALANCE.shotThreshold) {
+    if (!canScoreDirectly) {
+      return "chance_created";
     }
 
-    if (scoreValue >= BALANCE.chanceThreshold) {
-        return "chance_created";
+    if (rivalCard.id === "bloque-bajo" || rivalCard.id === "anticipacion") {
+      return "blocked";
     }
 
-    if (scoreValue >= BALANCE.possessionThreshold) {
-        return "possession_kept";
+    return playerCard.risk >= 55 ? "shot_missed" : "shot_saved";
+  }
+
+  if (scoreValue >= BALANCE.chanceThreshold) {
+    if (playerCard.id === "centro-al-area") {
+      return "corner";
     }
 
-    if (scoreValue >= BALANCE.neutralThreshold) {
-        return "neutral";
+    return "chance_created";
+  }
+
+  if (scoreValue >= BALANCE.possessionThreshold) {
+    return "possession_kept";
+  }
+
+  if (scoreValue >= BALANCE.neutralThreshold) {
+    return "neutral";
+  }
+
+  if (rivalCard.id === "linea-adelantada" && playerCard.id === "pase-filtrado") {
+    return "offside";
+  }
+
+  if (rivalCard.id === "barrida-fuerte" && playerCard.id === "regate-individual") {
+    if (rivalCard.risk >= 65 && scoreValue <= 25) {
+      return "yellow_card";
     }
 
-    if (rivalCard.id === "linea-adelantada" && playerCard.id === "pase-filtrado") {
-        return "offside";
-    }
+    return "foul";
+  }
 
-    if (rivalCard.id === "barrida-fuerte" && playerCard.id === "regate-individual") {
-        return rivalCard.risk >= 60 ? "foul" : "turnover";
-    }
+  if (rivalCard.id === "marcar-al-hombre" && playerCard.type === "attack") {
+    return "blocked";
+  }
 
-    if (rivalCard.type === "defense") {
-        return "interception";
-    }
+  if (rivalCard.type === "defense") {
+    return "interception";
+  }
 
-    return "turnover";
+  return "turnover";
+}
+
+function getScoringIntentModifier(playerCard: TacticalCard): number {
+  if (playerCard.id === "tiro-colocado") {
+    return 14;
+  }
+
+  if (playerCard.id === "pase-filtrado") {
+    return 12;
+  }
+
+  if (playerCard.id === "centro-al-area") {
+    return 10;
+  }
+
+  if (playerCard.id === "pared-rapida") {
+    return 10;
+  }
+
+  if (playerCard.id === "regate-individual") {
+    return 9;
+  }
+
+  if (playerCard.id === "tiro-lejano") {
+    return 8;
+  }
+
+  if (playerCard.id === "todo-o-nada") {
+    return 14;
+  }
+
+  if (playerCard.id === "ultima-jugada") {
+    return 12;
+  }
+
+  return 0;
 }
 
 function getMomentumChanges(outcome: PlayOutcome): {
@@ -199,6 +282,8 @@ function getMomentumChanges(outcome: PlayOutcome): {
   switch (outcome) {
     case "goal":
       return { playerMomentumChange: 18, rivalMomentumChange: -15 };
+    case "rival_goal":
+      return { playerMomentumChange: -15, rivalMomentumChange: 18 };
     case "shot_saved":
       return { playerMomentumChange: 4, rivalMomentumChange: 8 };
     case "shot_missed":
@@ -243,6 +328,7 @@ export function resolvePlay(params: ResolvePlayParams): MatchEvent {
   const situationModifier = getSituationModifier(params);
   const riskPenalty = getRiskPenalty(playerCard);
   const randomModifier = randomBetween(BALANCE.randomMin, BALANCE.randomMax);
+  const scoringIntentModifier = getScoringIntentModifier(playerCard);
 
   const rawScore =
     playerCard.basePower +
@@ -251,6 +337,7 @@ export function resolvePlay(params: ResolvePlayParams): MatchEvent {
     energyModifier +
     momentumModifier +
     situationModifier +
+    scoringIntentModifier +
     randomModifier -
     rivalPressureModifier -
     riskPenalty;
@@ -262,8 +349,11 @@ export function resolvePlay(params: ResolvePlayParams): MatchEvent {
   const rivalEnergyChange = -rivalCard.energyCost;
   const { playerMomentumChange, rivalMomentumChange } = getMomentumChanges(outcome);
 
-  const playerScore = outcome === "goal" ? matchState.playerScore + 1 : matchState.playerScore;
-  const rivalScore = matchState.rivalScore;
+  const playerScore =
+    outcome === "goal" ? matchState.playerScore + 1 : matchState.playerScore;
+
+  const rivalScore =
+    outcome === "rival_goal" ? matchState.rivalScore + 1 : matchState.rivalScore;
 
   const playerEnergy = clamp(
     matchState.playerEnergy + playerEnergyChange,

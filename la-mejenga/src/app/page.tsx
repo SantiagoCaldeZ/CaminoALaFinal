@@ -4,7 +4,7 @@ export default function HomePage() {
   return (
     <main className="min-h-screen bg-zinc-950 px-6 py-10 text-zinc-50">
       <section className="mx-auto flex min-h-[80vh] max-w-5xl flex-col items-center justify-center text-center">
-        <p className="mb-4 rounded-full border border-emerald-400/30 bg-emerald-400/10 px-4 py-1 text-sm font-medium text-emerald-200">
+        <p className="mb-4 rounded-full border border-emerald-400/30 bg-emerald-400/10 px-4 py-1 text-sm font-bold text-emerald-200">
           MVP 1 · Partido táctico por cartas
         </p>
 
@@ -13,8 +13,8 @@ export default function HomePage() {
         </h1>
 
         <p className="mt-6 max-w-2xl text-base leading-7 text-zinc-300 sm:text-lg">
-          Armá tu equipo de barrio, elegí cartas tácticas y resolvé momentos clave
-          en partidos rápidos llenos de decisiones, energía y momentum.
+          Un juego de fútbol de barrio donde cada partido se decide en momentos clave:
+          cartas tácticas, energía, momentum y decisiones que pueden cambiarlo todo.
         </p>
 
         <div className="mt-8 flex flex-col gap-3 sm:flex-row">
@@ -24,15 +24,6 @@ export default function HomePage() {
           >
             Jugar partido rápido
           </Link>
-
-          <a
-            href="https://nextjs.org/docs"
-            target="_blank"
-            rel="noreferrer"
-            className="rounded-2xl border border-zinc-700 px-6 py-3 font-bold text-zinc-100 transition hover:border-zinc-500 hover:bg-zinc-900"
-          >
-            Ver base técnica
-          </a>
         </div>
       </section>
     </main>

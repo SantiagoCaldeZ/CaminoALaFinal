@@ -106,6 +106,11 @@ export function generateNarration({
       `${playerCard.name} contra ${rivalCard.name}: choque táctico sin ganador claro.`,
       `Mucho intento, poco espacio. La pelota sigue en disputa y el marcador no se mueve.`,
     ],
+    rival_goal: [
+      `${playerTeam.name} perdió la pelota en una zona peligrosa y ${rivalTeam.name} no perdonó. Gol del rival.`,
+      `${rivalCard.name} castigó una mala decisión. ${rivalTeam.name} aprovecha y manda la pelota adentro.`,
+      `El riesgo salió caro. ${rivalTeam.name} recuperó, aceleró y terminó celebrando el gol.`,
+    ],
   };
 
   return pickRandom(narrations[outcome]);

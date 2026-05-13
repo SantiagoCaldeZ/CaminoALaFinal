@@ -38,6 +38,7 @@ export type PlayOutcome =
   | "interception"
   | "possession_kept"
   | "chance_created"
+  | "rival_goal"
   | "neutral";
 
 export type Player = {
