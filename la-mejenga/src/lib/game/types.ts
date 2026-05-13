@@ -105,6 +105,11 @@ export type MatchEvent = {
   id: string;
   minute: number;
   situationId: string;
+  situationTitle: string;
+  protagonistId: string;
+  protagonistName: string;
+  rivalProtagonistId: string;
+  rivalProtagonistName: string;
   playerCardId: string;
   rivalCardId: string;
   outcome: PlayOutcome;
@@ -115,4 +120,23 @@ export type MatchEvent = {
   rivalEnergy: number;
   playerMomentum: number;
   rivalMomentum: number;
+  playerEnergyChange: number;
+  rivalEnergyChange: number;
+  playerMomentumChange: number;
+  rivalMomentumChange: number;
+  scoreValue: number;
+};
+
+export type ResolvePlayParams = {
+  matchState: MatchState;
+  situation: MatchSituation;
+  playerCard: TacticalCard;
+  rivalCard: TacticalCard;
+  protagonist: Player;
+  rivalProtagonist: Player;
+};
+
+export type PlayMomentParams = {
+  matchState: MatchState;
+  playerCard: TacticalCard;
 };
