@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import {
   clearProgressionProfile,
@@ -75,14 +76,18 @@ export function ProgressionScreen() {
   );
 
   useEffect(() => {
-    const loadedProfile = loadProgressionProfile();
-    const firstTeamWithProgress = TEAMS.find(
-      (team) => loadedProfile.teams[team.id]?.matchesPlayed > 0,
-    );
+    const timer = window.setTimeout(() => {
+        const loadedProfile = loadProgressionProfile();
+        const firstTeamWithProgress = TEAMS.find(
+        (team) => loadedProfile.teams[team.id]?.matchesPlayed > 0,
+        );
 
-    setProfile(loadedProfile);
-    setSelectedTeamId(firstTeamWithProgress?.id ?? TEAMS[0]?.id ?? "");
-  }, []);
+        setProfile(loadedProfile);
+        setSelectedTeamId(firstTeamWithProgress?.id ?? TEAMS[0]?.id ?? "");
+    }, 0);
+
+    return () => window.clearTimeout(timer);
+    }, []);
 
   const selectedTeam = useMemo(
     () => getTeamById(selectedTeamId),
@@ -150,12 +155,12 @@ export function ProgressionScreen() {
           </div>
 
           <div className="flex flex-wrap gap-3">
-            <a
-              href="/"
-              className="rounded-xl border border-zinc-700 px-4 py-2 text-sm font-bold text-zinc-100 transition hover:bg-zinc-900"
+            <Link
+                 href="/"
+                className="rounded-xl border border-zinc-700 px-4 py-2 text-sm font-bold text-zinc-100 transition hover:bg-zinc-900"
             >
-              Volver al inicio
-            </a>
+                Volver al inicio
+            </Link>
 
             <button
               type="button"

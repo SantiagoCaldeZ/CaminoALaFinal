@@ -1,4 +1,5 @@
 import { TEAMS, getTeamStyleLabel, type Team } from "@/lib/game/teams";
+import Link from "next/link";
 
 type CaminoTeamSelectProps = {
   onSelectTeam: (team: Team) => void;
@@ -20,12 +21,12 @@ export function CaminoTeamSelect({ onSelectTeam }: CaminoTeamSelectProps) {
             </p>
           </div>
 
-          <a
+          <Link
             href="/"
             className="rounded-xl border border-zinc-700 px-4 py-2 text-sm font-bold text-zinc-100 transition hover:bg-zinc-900"
           >
             Volver al inicio
-          </a>
+          </Link>
         </header>
 
         <section className="rounded-3xl border border-emerald-400/20 bg-emerald-400/5 p-5">

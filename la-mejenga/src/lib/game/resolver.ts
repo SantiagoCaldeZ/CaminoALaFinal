@@ -2,7 +2,6 @@ import { BALANCE } from "./balance";
 import { generateNarration } from "./narration";
 import type {
   MatchEvent,
-  MatchSituation,
   PlayOutcome,
   ResolvePlayParams,
   TacticalCard,

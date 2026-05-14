@@ -4,7 +4,7 @@ import type { MatchState } from "@/lib/game/types";
 import { getFinalMatchReport } from "@/lib/game/final-match-report";
 import { Panel } from "@/components/ui/Panel";
 import { MatchHistory } from "./MatchHistory";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
   awardMatchProgression,
   type MatchProgressionReward,
@@ -32,18 +32,22 @@ export function FinalSummary({
 
   const [progressionReward, setProgressionReward] =
     useState<MatchProgressionReward | null | undefined>(undefined);
+  const awardedMatchIdRef = useRef<string | null>(null);
 
   useEffect(() => {
-    const reward = awardMatchProgression(matchState);
-
-    setProgressionReward((currentReward) => {
-      if (currentReward !== undefined) {
-        return currentReward;
+    const timer = window.setTimeout(() => {
+      if (awardedMatchIdRef.current === matchState.id) {
+        return;
       }
 
-      return reward;
-    });
-  }, [matchState.id]);
+      awardedMatchIdRef.current = matchState.id;
+
+      const reward = awardMatchProgression(matchState);
+      setProgressionReward(reward);
+    }, 0);
+
+    return () => window.clearTimeout(timer);
+  }, [matchState]);
 
   return (
     <div className="space-y-5">

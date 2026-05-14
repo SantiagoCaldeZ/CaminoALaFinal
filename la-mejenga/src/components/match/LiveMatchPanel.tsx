@@ -8,17 +8,17 @@ type LiveMatchPanelProps = {
 };
 
 const toneStyles = {
-  neutral: "border-zinc-800 bg-zinc-950",
-  positive: "border-emerald-400/30 bg-emerald-400/10",
-  warning: "border-amber-400/30 bg-amber-400/10",
-  danger: "border-rose-400/30 bg-rose-400/10",
+  neutral: "border-white/10 bg-zinc-950/75",
+  positive: "border-emerald-300/30 bg-emerald-300/10",
+  warning: "border-amber-300/35 bg-amber-300/10",
+  danger: "border-rose-300/35 bg-rose-300/10",
 };
 
 const toneTextStyles = {
   neutral: "text-zinc-300",
-  positive: "text-emerald-300",
-  warning: "text-amber-300",
-  danger: "text-rose-300",
+  positive: "text-emerald-200",
+  warning: "text-amber-100",
+  danger: "text-rose-100",
 };
 
 export function LiveMatchPanel({
@@ -28,25 +28,33 @@ export function LiveMatchPanel({
   const insight = getLiveMatchInsight(matchState, currentMinute);
 
   return (
-    <section className="grid gap-4 lg:grid-cols-[0.8fr_1.2fr]">
+    <section className="grid gap-4 lg:grid-cols-[0.82fr_1.18fr]">
       <TimeProgressBar currentMinute={currentMinute} />
 
-      <article className={`rounded-2xl border p-4 ${toneStyles[insight.tone]}`}>
-        <div className="mb-2 flex flex-wrap items-center justify-between gap-3">
-          <p className="text-xs font-black uppercase tracking-wide text-zinc-500">
-            Lectura en vivo
-          </p>
+      <article
+        className={`relative overflow-hidden rounded-3xl border p-5 shadow-xl shadow-black/25 backdrop-blur ${toneStyles[insight.tone]}`}
+      >
+        <div className="absolute inset-x-6 top-0 h-px bg-gradient-to-r from-transparent via-white/30 to-transparent" />
+
+        <div className="flex flex-wrap items-start justify-between gap-3">
+          <div>
+            <p className="text-xs font-black uppercase tracking-[0.22em] text-zinc-500">
+              Lectura en vivo
+            </p>
+
+            <h2 className="mt-2 text-2xl font-black text-zinc-50">
+              {insight.title}
+            </h2>
+          </div>
 
           <span
-            className={`rounded-full border border-white/10 bg-black/20 px-3 py-1 text-xs font-black ${toneTextStyles[insight.tone]}`}
+            className={`rounded-full border border-white/10 bg-black/25 px-3 py-1 text-xs font-black uppercase tracking-wide ${toneTextStyles[insight.tone]}`}
           >
             {insight.matchStateLabel}
           </span>
         </div>
 
-        <h2 className="text-lg font-black text-zinc-50">{insight.title}</h2>
-
-        <p className="mt-2 text-sm leading-6 text-zinc-300">
+        <p className="mt-4 max-w-3xl text-sm leading-7 text-zinc-300">
           {insight.description}
         </p>
       </article>

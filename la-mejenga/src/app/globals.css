@@ -1,8 +1,15 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --background: #07110d;
+  --foreground: #f8fafc;
+  --mejenga-grass: #15b981;
+  --mejenga-lime: #bef264;
+  --mejenga-gold: #facc15;
+  --mejenga-orange: #fb923c;
+  --mejenga-night: #07110d;
+  --mejenga-card: rgba(12, 21, 18, 0.82);
+  --mejenga-border: rgba(255, 255, 255, 0.12);
 }
 
 @theme inline {
@@ -12,15 +19,120 @@
   --font-mono: var(--font-geist-mono);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+* {
+  box-sizing: border-box;
+}
+
+html {
+  min-height: 100%;
+  background: var(--background);
 }
 
 body {
-  background: var(--background);
+  min-height: 100%;
+  background:
+    radial-gradient(circle at top left, rgba(34, 197, 94, 0.18), transparent 32rem),
+    radial-gradient(circle at top right, rgba(250, 204, 21, 0.12), transparent 30rem),
+    linear-gradient(135deg, #06100c 0%, #07110d 45%, #111827 100%);
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+button,
+a {
+  -webkit-tap-highlight-color: transparent;
+}
+
+::selection {
+  background: rgba(190, 242, 100, 0.35);
+  color: #f8fafc;
+}
+
+.mejenga-shell {
+  position: relative;
+  overflow: hidden;
+  background:
+    linear-gradient(rgba(7, 17, 13, 0.88), rgba(7, 17, 13, 0.92)),
+    repeating-linear-gradient(
+      90deg,
+      rgba(34, 197, 94, 0.06) 0,
+      rgba(34, 197, 94, 0.06) 56px,
+      rgba(15, 118, 110, 0.05) 56px,
+      rgba(15, 118, 110, 0.05) 112px
+    );
+}
+
+.mejenga-shell::before {
+  content: "";
+  position: absolute;
+  inset: -18rem -12rem auto auto;
+  width: 34rem;
+  height: 34rem;
+  border-radius: 9999px;
+  background: rgba(250, 204, 21, 0.14);
+  filter: blur(20px);
+  pointer-events: none;
+}
+
+.mejenga-shell::after {
+  content: "";
+  position: absolute;
+  inset: auto auto -16rem -10rem;
+  width: 32rem;
+  height: 32rem;
+  border-radius: 9999px;
+  background: rgba(16, 185, 129, 0.16);
+  filter: blur(24px);
+  pointer-events: none;
+}
+
+.mejenga-field-lines {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  opacity: 0.14;
+  background:
+    radial-gradient(
+      circle at center,
+      transparent 0 92px,
+      rgba(255, 255, 255, 0.42) 93px 95px,
+      transparent 96px
+    ),
+    linear-gradient(
+      rgba(255, 255, 255, 0.38),
+      rgba(255, 255, 255, 0.38)
+    );
+  background-size: auto, 100% 2px;
+  background-position: center, center;
+  background-repeat: no-repeat;
+}
+
+.mejenga-card-shine {
+  position: relative;
+  overflow: hidden;
+}
+
+.mejenga-card-shine::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    120deg,
+    rgba(255, 255, 255, 0.16),
+    transparent 34%,
+    transparent 66%,
+    rgba(255, 255, 255, 0.06)
+  );
+  opacity: 0;
+  transition: opacity 180ms ease;
+  pointer-events: none;
+}
+
+.mejenga-card-shine:hover::before {
+  opacity: 1;
 }

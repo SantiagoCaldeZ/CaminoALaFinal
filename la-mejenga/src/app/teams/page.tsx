@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useMemo, useState } from "react";
+import { GameShell } from "@/components/ui/GameShell";
 import {
   TEAMS,
   getDefaultRivalTeam,
@@ -11,7 +12,9 @@ import {
 } from "@/lib/game/teams";
 
 export default function TeamsPage() {
-  const [selectedPlayerTeam, setSelectedPlayerTeam] = useState<Team | null>(null);
+  const [selectedPlayerTeam, setSelectedPlayerTeam] = useState<Team | null>(
+    null,
+  );
   const [selectedRivalTeam, setSelectedRivalTeam] = useState<Team | null>(null);
 
   const rivalOptions = useMemo(() => {
@@ -48,14 +51,16 @@ export default function TeamsPage() {
       : "/teams";
 
   return (
-    <main className="min-h-screen bg-[#050607] text-white">
-      <section className="mx-auto w-full max-w-6xl px-6 py-10">
+    <GameShell maxWidth="6xl" contentClassName="py-2">
+      <section className="w-full">
         <header className="mb-8 flex items-start justify-between gap-4 border-b border-white/10 pb-6">
           <div>
             <p className="text-sm font-bold text-emerald-400">La Mejenga</p>
+
             <h1 className="mt-2 text-4xl font-black tracking-tight">
               {selectedPlayerTeam ? "Elegí el rival" : "Elegí tu equipo"}
             </h1>
+
             <p className="mt-3 max-w-2xl text-sm leading-6 text-zinc-400">
               {selectedPlayerTeam
                 ? "Seleccioná contra quién querés jugar este partido rápido."
@@ -92,9 +97,11 @@ export default function TeamsPage() {
                   <p className="text-xs font-black uppercase tracking-wide text-emerald-300">
                     Tu equipo
                   </p>
+
                   <h2 className="mt-1 text-2xl font-black text-zinc-50">
                     {selectedPlayerTeam.name}
                   </h2>
+
                   <p className="mt-1 text-sm text-zinc-400">
                     {selectedPlayerTeam.city} ·{" "}
                     {getTeamStyleLabel(selectedPlayerTeam.style)}
@@ -132,6 +139,7 @@ export default function TeamsPage() {
                   <p className="text-xs font-black uppercase tracking-wide text-zinc-500">
                     Enfrentamiento seleccionado
                   </p>
+
                   <p className="mt-2 text-lg font-black text-zinc-50">
                     {selectedPlayerTeam.name} vs {selectedRivalTeam.name}
                   </p>
@@ -157,7 +165,7 @@ export default function TeamsPage() {
           </div>
         )}
       </section>
-    </main>
+    </GameShell>
   );
 }
 
@@ -185,6 +193,7 @@ function TeamCard({
           <p className="text-xs font-black uppercase tracking-wide text-emerald-400">
             {team.city}
           </p>
+
           <h2 className="mt-2 text-2xl font-black">{team.name}</h2>
         </div>
 
@@ -198,6 +207,7 @@ function TeamCard({
           className="h-8 w-8 rounded-full border border-white/20"
           style={{ backgroundColor: team.colors.primary }}
         />
+
         <span
           className="h-8 w-8 rounded-full border border-white/20"
           style={{ backgroundColor: team.colors.secondary }}

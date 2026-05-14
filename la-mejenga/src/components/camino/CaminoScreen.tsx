@@ -33,14 +33,18 @@ export function CaminoScreen() {
     useState<CaminoProgressionReward | null>(null);
 
   useEffect(() => {
-    const savedCamino = loadCaminoRun();
+    const timer = window.setTimeout(() => {
+      const savedCamino = loadCaminoRun();
 
-    if (!savedCamino) {
-      return;
-    }
+      if (!savedCamino) {
+        return;
+      }
 
-    setCamino(savedCamino);
-    setPhase("bracket");
+      setCamino(savedCamino);
+      setPhase("bracket");
+    }, 0);
+
+    return () => window.clearTimeout(timer);
   }, []);
 
   function handleSelectTeam(team: Team) {

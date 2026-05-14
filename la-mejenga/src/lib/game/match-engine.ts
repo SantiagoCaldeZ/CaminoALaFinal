@@ -11,7 +11,7 @@ import type {
   TacticalCard,
   Team,
 } from "./types";
-import { pickRandom, shuffle, uniqueById } from "./utils";
+import { pickRandom, shuffle } from "./utils";
 import { getInitialEnergy, getInitialMomentum } from "./team-effects";
 import { getCardsForTeamSituation } from "./team-card-identity";
 

@@ -5,19 +5,26 @@ type BadgeVariant = "default" | "success" | "warning" | "danger" | "info";
 type BadgeProps = {
   children: ReactNode;
   variant?: BadgeVariant;
+  className?: string;
 };
 
 const variantClasses: Record<BadgeVariant, string> = {
-  default: "border-zinc-700 bg-zinc-800 text-zinc-200",
-  success: "border-emerald-400/30 bg-emerald-400/10 text-emerald-200",
-  warning: "border-amber-400/30 bg-amber-400/10 text-amber-200",
-  danger: "border-red-400/30 bg-red-400/10 text-red-200",
-  info: "border-sky-400/30 bg-sky-400/10 text-sky-200",
+  default: "border-white/10 bg-white/10 text-zinc-200",
+  success: "border-emerald-300/35 bg-emerald-300/10 text-emerald-100",
+  warning: "border-amber-300/35 bg-amber-300/10 text-amber-100",
+  danger: "border-rose-300/35 bg-rose-300/10 text-rose-100",
+  info: "border-sky-300/35 bg-sky-300/10 text-sky-100",
 };
 
-export function Badge({ children, variant = "default" }: BadgeProps) {
+export function Badge({
+  children,
+  variant = "default",
+  className = "",
+}: BadgeProps) {
   return (
-    <span className={`inline-flex rounded-full border px-3 py-1 text-xs font-bold uppercase tracking-wide ${variantClasses[variant]}`}>
+    <span
+      className={`inline-flex rounded-full border px-3 py-1 text-xs font-black uppercase tracking-[0.16em] shadow-sm backdrop-blur ${variantClasses[variant]} ${className}`}
+    >
       {children}
     </span>
   );

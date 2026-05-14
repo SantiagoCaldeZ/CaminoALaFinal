@@ -7,7 +7,9 @@ type PanelProps = {
 
 export function Panel({ children, className = "" }: PanelProps) {
   return (
-    <section className={`rounded-2xl border border-zinc-800 bg-zinc-900/70 p-5 shadow-xl shadow-black/10 ${className}`}>
+    <section
+      className={`mejenga-card-shine rounded-3xl border border-white/10 bg-zinc-950/70 p-5 shadow-2xl shadow-black/25 backdrop-blur transition ${className}`}
+    >
       {children}
     </section>
   );
