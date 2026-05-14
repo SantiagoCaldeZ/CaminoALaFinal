@@ -1,7 +1,7 @@
 "use client";
 
-import { useState } from "react";
-import { TeamSelect } from "@/components/team/TeamSelect";
+import { useEffect, useState } from "react";
+import { CaminoTeamSelect } from "./CaminoTeamSelect";
 import { MatchScreen } from "@/components/match/MatchScreen";
 import type { MatchState } from "@/lib/game/types";
 import type { Team } from "@/lib/game/teams";
@@ -13,6 +13,11 @@ import {
   type CaminoRun,
 } from "@/lib/game/camino";
 import { CaminoBracket } from "./CaminoBracket";
+import {
+  clearCaminoRun,
+  loadCaminoRun,
+  saveCaminoRun,
+} from "@/lib/game/camino-storage";
 
 type CaminoPhase = "team_select" | "bracket" | "match";
 
@@ -20,9 +25,21 @@ export function CaminoScreen() {
   const [phase, setPhase] = useState<CaminoPhase>("team_select");
   const [camino, setCamino] = useState<CaminoRun | null>(null);
 
+  useEffect(() => {
+    const savedCamino = loadCaminoRun();
+
+    if (!savedCamino) {
+      return;
+    }
+
+    setCamino(savedCamino);
+    setPhase("bracket");
+  }, []);
+
   function handleSelectTeam(team: Team) {
     const newCamino = createCaminoRun(team.id);
 
+    saveCaminoRun(newCamino);
     setCamino(newCamino);
     setPhase("bracket");
   }
@@ -43,17 +60,19 @@ export function CaminoScreen() {
 
     const nextCamino = resolveCaminoMatch(camino, matchState);
 
+    saveCaminoRun(nextCamino);
     setCamino(nextCamino);
     setPhase("bracket");
   }
 
   function handleReset() {
+    clearCaminoRun();
     setCamino(null);
     setPhase("team_select");
   }
 
   if (phase === "team_select" || !camino) {
-    return <TeamSelect onSelectTeam={handleSelectTeam} />;
+    return <CaminoTeamSelect onSelectTeam={handleSelectTeam} />;
   }
 
   const playerTeam = getCaminoPlayerTeam(camino);
