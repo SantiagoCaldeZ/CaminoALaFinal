@@ -30,6 +30,12 @@ export default function HomePage() {
           >
             Camino a la Final
           </Link>
+          <a
+            href="/progreso"
+            className="rounded-xl border border-zinc-700 px-5 py-3 text-sm font-black text-zinc-100 transition hover:bg-zinc-900"
+          >
+            Ver progreso
+          </a>
         </div>
       </section>
     </main>

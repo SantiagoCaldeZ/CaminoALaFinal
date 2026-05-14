@@ -31,12 +31,19 @@ export function FinalSummary({
   const report = getFinalMatchReport(matchState);
 
   const [progressionReward, setProgressionReward] =
-  useState<MatchProgressionReward | null>(null);
+    useState<MatchProgressionReward | null | undefined>(undefined);
 
   useEffect(() => {
     const reward = awardMatchProgression(matchState);
-    setProgressionReward(reward);
-  }, [matchState]);
+
+    setProgressionReward((currentReward) => {
+      if (currentReward !== undefined) {
+        return currentReward;
+      }
+
+      return reward;
+    });
+  }, [matchState.id]);
 
   return (
     <div className="space-y-5">

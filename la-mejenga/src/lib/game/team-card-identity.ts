@@ -183,34 +183,34 @@ function getSignatureAppearanceChance({
   situation: MatchSituation;
   team: TeamCardProfile;
 }): number {
-  let chance = 12;
+  let chance = 5;
 
   if (situation.preferredCardTypes.includes(card.type)) {
-    chance += 10;
+    chance += 6;
   }
 
   if (card.preferredSituations.includes(situation.id)) {
-    chance += 12;
+    chance += 7;
   }
 
   const styleBonus =
     STYLE_CARD_TYPE_BONUS[team.style ?? "balanced"]?.[card.type] ?? 0;
 
   if (styleBonus >= 8) {
-    chance += 4;
+    chance += 2;
   }
 
   const statValue = getStatForCardType(team, card.type);
 
   if (statValue >= 78) {
-    chance += 4;
+    chance += 2;
   }
 
   if (card.risk >= 65) {
-    chance -= 4;
+    chance -= 3;
   }
 
-  return clamp(chance, 10, 34);
+  return clamp(chance, 4, 18);
 }
 
 function shouldIncludeSignatureCard({
@@ -272,7 +272,7 @@ export function getCardsForTeamSituation({
             card,
             situation,
             team,
-          }) + (isSignature ? 10 : 0),
+          }) + (isSignature ? 4 : 0),
       };
     })
     .sort((a, b) => b.score - a.score)

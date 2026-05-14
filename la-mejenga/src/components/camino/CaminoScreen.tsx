@@ -18,12 +18,19 @@ import {
   loadCaminoRun,
   saveCaminoRun,
 } from "@/lib/game/camino-storage";
+import {
+  awardCaminoProgression,
+  type CaminoProgressionReward,
+} from "@/lib/game/progression";
+import { CaminoProgressionRewardPanel } from "./CaminoProgressionRewardPanel";
 
 type CaminoPhase = "team_select" | "bracket" | "match";
 
 export function CaminoScreen() {
   const [phase, setPhase] = useState<CaminoPhase>("team_select");
   const [camino, setCamino] = useState<CaminoRun | null>(null);
+  const [lastCaminoReward, setLastCaminoReward] =
+    useState<CaminoProgressionReward | null>(null);
 
   useEffect(() => {
     const savedCamino = loadCaminoRun();
@@ -42,6 +49,7 @@ export function CaminoScreen() {
     saveCaminoRun(newCamino);
     setCamino(newCamino);
     setPhase("bracket");
+    setLastCaminoReward(null);
   }
 
   function handleStartMatch() {
@@ -59,8 +67,10 @@ export function CaminoScreen() {
     }
 
     const nextCamino = resolveCaminoMatch(camino, matchState);
+    const caminoReward = awardCaminoProgression(nextCamino);
 
     saveCaminoRun(nextCamino);
+    setLastCaminoReward(caminoReward);
     setCamino(nextCamino);
     setPhase("bracket");
   }
@@ -69,6 +79,7 @@ export function CaminoScreen() {
     clearCaminoRun();
     setCamino(null);
     setPhase("team_select");
+    setLastCaminoReward(null);
   }
 
   if (phase === "team_select" || !camino) {
@@ -95,10 +106,14 @@ export function CaminoScreen() {
   }
 
   return (
-    <CaminoBracket
-      camino={camino}
-      onStartMatch={handleStartMatch}
-      onReset={handleReset}
-    />
+    <>
+      <CaminoProgressionRewardPanel reward={lastCaminoReward} />
+
+      <CaminoBracket
+        camino={camino}
+        onStartMatch={handleStartMatch}
+        onReset={handleReset}
+      />
+    </>
   );
 }

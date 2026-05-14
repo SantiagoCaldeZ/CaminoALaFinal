@@ -1,10 +1,23 @@
 import type { MatchProgressionReward } from "@/lib/game/progression";
 
 type ProgressionPanelProps = {
-  reward: MatchProgressionReward | null;
+  reward: MatchProgressionReward | null | undefined;
 };
 
 export function ProgressionPanel({ reward }: ProgressionPanelProps) {
+  if (reward === undefined) {
+    return (
+      <section className="rounded-2xl border border-zinc-800 bg-zinc-950 p-5">
+        <p className="text-xs font-black uppercase tracking-wide text-zinc-500">
+          Progreso del equipo
+        </p>
+        <p className="mt-2 text-sm text-zinc-400">
+          Calculando progreso obtenido...
+        </p>
+      </section>
+    );
+  }
+
   if (!reward) {
     return (
       <section className="rounded-2xl border border-zinc-800 bg-zinc-950 p-5">

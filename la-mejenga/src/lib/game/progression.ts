@@ -1,3 +1,5 @@
+import type { CaminoRun } from "./camino";
+import { getTeamById } from "./teams";
 import type { MatchEvent, MatchState, PlayOutcome } from "./types";
 
 export type PlayerProgress = {
@@ -22,6 +24,7 @@ export type TeamProgress = {
 export type ProgressionProfile = {
   teams: Record<string, TeamProgress>;
   awardedMatchIds: string[];
+  awardedCaminoRewardIds: string[];
 };
 
 export type PlayerXpGain = {
@@ -42,16 +45,37 @@ export type MatchProgressionReward = {
   playerGains: PlayerXpGain[];
 };
 
+export type CaminoProgressionReward = {
+  rewardId: string;
+  teamId: string;
+  title: string;
+  description: string;
+  reputationGained: number;
+  trophyGained: number;
+  playerGains: PlayerXpGain[];
+};
+
 const PROGRESSION_STORAGE_KEY = "la-mejenga-progression";
 
 function getEmptyProfile(): ProgressionProfile {
   return {
     teams: {},
     awardedMatchIds: [],
+    awardedCaminoRewardIds: [],
   };
 }
 
-function getXpRequiredForNextLevel(level: number): number {
+function normalizeProgressionProfile(
+  profile: Partial<ProgressionProfile>,
+): ProgressionProfile {
+  return {
+    teams: profile.teams ?? {},
+    awardedMatchIds: profile.awardedMatchIds ?? [],
+    awardedCaminoRewardIds: profile.awardedCaminoRewardIds ?? [],
+  };
+}
+
+export function getXpRequiredForNextLevel(level: number): number {
   return 80 + level * 20;
 }
 
@@ -65,25 +89,31 @@ function createPlayerProgress(playerId: string, playerName: string): PlayerProgr
   };
 }
 
-function normalizeTeamProgress(
+function normalizeTeamProgressFromTeam(
   profile: ProgressionProfile,
-  matchState: MatchState,
+  team: {
+    id: string;
+    players: Array<{
+      id: string;
+      name: string;
+    }>;
+  },
 ): TeamProgress {
-  const existingTeamProgress = profile.teams[matchState.playerTeam.id];
+  const existingTeamProgress = profile.teams[team.id];
 
   if (existingTeamProgress) {
     return existingTeamProgress;
   }
 
   const players = Object.fromEntries(
-    matchState.playerTeam.players.map((player) => [
+    team.players.map((player) => [
       player.id,
       createPlayerProgress(player.id, player.name),
     ]),
   );
 
   return {
-    teamId: matchState.playerTeam.id,
+    teamId: team.id,
     reputation: 0,
     matchesPlayed: 0,
     wins: 0,
@@ -92,6 +122,13 @@ function normalizeTeamProgress(
     trophies: 0,
     players,
   };
+}
+
+function normalizeTeamProgress(
+  profile: ProgressionProfile,
+  matchState: MatchState,
+): TeamProgress {
+  return normalizeTeamProgressFromTeam(profile, matchState.playerTeam);
 }
 
 function getResultLabel(matchState: MatchState): string {
@@ -295,7 +332,9 @@ export function loadProgressionProfile(): ProgressionProfile {
   }
 
   try {
-    return JSON.parse(rawProfile) as ProgressionProfile;
+    return normalizeProgressionProfile(
+        JSON.parse(rawProfile) as Partial<ProgressionProfile>,
+    );
   } catch {
     window.localStorage.removeItem(PROGRESSION_STORAGE_KEY);
     return getEmptyProfile();
@@ -363,11 +402,12 @@ export function awardMatchProgression(
 
   const nextProfile: ProgressionProfile = {
     teams: {
-      ...profile.teams,
-      [matchState.playerTeam.id]: teamProgress,
+        ...profile.teams,
+        [matchState.playerTeam.id]: teamProgress,
     },
     awardedMatchIds: [...profile.awardedMatchIds, matchState.id],
-  };
+    awardedCaminoRewardIds: profile.awardedCaminoRewardIds,
+    };
 
   saveProgressionProfile(nextProfile);
 
@@ -376,6 +416,122 @@ export function awardMatchProgression(
     teamId: matchState.playerTeam.id,
     reputationGained,
     resultLabel,
+    playerGains,
+  };
+}
+
+function getCaminoRewardId(camino: CaminoRun): string | null {
+  const latestResult = camino.results[camino.results.length - 1];
+
+  if (!latestResult) {
+    return null;
+  }
+
+  return `${camino.id}-${latestResult.id}`;
+}
+
+function getCaminoRewardConfig(camino: CaminoRun): {
+  title: string;
+  description: string;
+  reputationGained: number;
+  trophyGained: number;
+  basePlayerXp: number;
+} | null {
+  const latestResult = camino.results[camino.results.length - 1];
+
+  if (!latestResult || !latestResult.userAdvanced) {
+    return null;
+  }
+
+  if (latestResult.round === "semifinal" && camino.currentRound === "final") {
+    return {
+      title: "Avanzaste a la final",
+      description:
+        "El equipo dio un paso grande en el torneo y ganó confianza para el partido decisivo.",
+      reputationGained: 8,
+      trophyGained: 0,
+      basePlayerXp: 8,
+    };
+  }
+
+  if (latestResult.round === "final" && camino.status === "champion") {
+    return {
+      title: "Campeón de Camino a la Final",
+      description:
+        "El equipo levantó el título y ganó reputación especial por cerrar el torneo.",
+      reputationGained: 25,
+      trophyGained: 1,
+      basePlayerXp: 18,
+    };
+  }
+
+  return null;
+}
+
+export function awardCaminoProgression(
+  camino: CaminoRun,
+): CaminoProgressionReward | null {
+  const rewardId = getCaminoRewardId(camino);
+  const rewardConfig = getCaminoRewardConfig(camino);
+
+  if (!rewardId || !rewardConfig) {
+    return null;
+  }
+
+  const profile = loadProgressionProfile();
+
+  if (profile.awardedCaminoRewardIds.includes(rewardId)) {
+    return null;
+  }
+
+  const team = getTeamById(camino.playerTeamId);
+  const teamProgress = normalizeTeamProgressFromTeam(profile, team);
+
+  const playerGains = team.players.map((player, index) => {
+    const existingPlayer =
+      teamProgress.players[player.id] ??
+      createPlayerProgress(player.id, player.name);
+
+    const xpGained = rewardConfig.basePlayerXp + (index < 3 ? 4 : 0);
+    const applied = applyXp(existingPlayer, xpGained);
+
+    teamProgress.players[player.id] = applied.updatedPlayer;
+
+    return {
+      playerId: player.id,
+      playerName: player.name,
+      previousLevel: applied.previousLevel,
+      newLevel: applied.newLevel,
+      xpGained,
+      leveledUp: applied.leveledUp,
+      reason:
+        rewardConfig.trophyGained > 0
+          ? "Bonificación por campeonato"
+          : "Bonificación por avanzar en el torneo",
+    };
+  });
+
+  teamProgress.reputation += rewardConfig.reputationGained;
+  teamProgress.trophies += rewardConfig.trophyGained;
+
+  const nextProfile: ProgressionProfile = {
+    teams: {
+        ...profile.teams,
+        [team.id]: teamProgress,
+    },
+    awardedMatchIds: profile.awardedMatchIds,
+    awardedCaminoRewardIds: [...profile.awardedCaminoRewardIds, rewardId],
+   };
+
+  saveProgressionProfile(nextProfile);
+
+  return {
+    rewardId,
+    teamId: team.id,
+    title: rewardConfig.title,
+    description: rewardConfig.description,
+    reputationGained: rewardConfig.reputationGained,
+    trophyGained: rewardConfig.trophyGained,
     playerGains,
   };
 }
