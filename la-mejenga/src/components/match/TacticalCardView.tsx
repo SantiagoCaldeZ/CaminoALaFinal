@@ -1,4 +1,5 @@
 import { getCardAdvice } from "@/lib/game/card-advice";
+import { isSignatureCard } from "@/lib/game/signature-cards";
 import type { MatchSituation, TacticalCard } from "@/lib/game/types";
 import { Badge } from "@/components/ui/Badge";
 
@@ -10,14 +11,18 @@ type TacticalCardViewProps = {
   onSelect?: (card: TacticalCard) => void;
 };
 
-function getBadgeVariant(type: TacticalCard["type"]): "success" | "danger" | "info" | "warning" {
+function getBadgeVariant(
+  type: TacticalCard["type"],
+): "success" | "danger" | "info" | "warning" {
   if (type === "attack") return "danger";
   if (type === "defense") return "success";
   if (type === "midfield") return "info";
   return "warning";
 }
 
-function getAdviceClasses(tone: ReturnType<typeof getCardAdvice>["tone"]): string {
+function getAdviceClasses(
+  tone: ReturnType<typeof getCardAdvice>["tone"],
+): string {
   if (tone === "recommended") {
     return "border-emerald-400/30 bg-emerald-400/10 text-emerald-200";
   }
@@ -41,29 +46,49 @@ export function TacticalCardView({
   onSelect,
 }: TacticalCardViewProps) {
   const advice = getCardAdvice(card, situation, currentEnergy);
-  const isDisabled = disabled || card.energyCost > currentEnergy;
+  const isSignature = isSignatureCard(card.id);
+
+  const isDisabled = disabled;
+
+  const cardBorderClasses = isSignature
+    ? "border-amber-300/60 bg-amber-300/10 hover:border-amber-200 hover:bg-amber-300/15"
+    : advice.tone === "recommended"
+      ? "border-emerald-400/40 hover:border-emerald-300"
+      : "border-zinc-800 hover:border-emerald-400/60";
 
   return (
     <button
       disabled={isDisabled}
       onClick={() => onSelect?.(card)}
-      className={`group flex min-h-[290px] w-full flex-col rounded-2xl border bg-zinc-900 p-5 text-left transition duration-200 disabled:cursor-not-allowed disabled:opacity-50 ${
-        advice.tone === "recommended"
-          ? "border-emerald-400/40 hover:border-emerald-300"
-          : "border-zinc-800 hover:border-emerald-400/60"
-      } hover:-translate-y-1 hover:bg-zinc-800 disabled:hover:translate-y-0 disabled:hover:border-zinc-800 disabled:hover:bg-zinc-900`}
+      className={`group flex min-h-[290px] w-full flex-col rounded-2xl border bg-zinc-900 p-5 text-left transition duration-200 disabled:cursor-not-allowed disabled:opacity-50 ${cardBorderClasses} hover:-translate-y-1 hover:bg-zinc-800 disabled:hover:translate-y-0 disabled:hover:border-zinc-800 disabled:hover:bg-zinc-900`}
     >
       <div className="flex items-start justify-between gap-3">
-        <Badge variant={getBadgeVariant(card.type)}>{card.type}</Badge>
+        <div className="flex flex-wrap items-center gap-2">
+          <Badge variant={getBadgeVariant(card.type)}>{card.type}</Badge>
+
+          {isSignature && (
+            <span className="rounded-full border border-amber-300/40 bg-amber-300/10 px-3 py-1 text-[11px] font-black uppercase tracking-wide text-amber-300">
+              Insignia
+            </span>
+          )}
+        </div>
+
         <span className="rounded-full bg-zinc-950 px-3 py-1 text-xs font-black text-emerald-300">
           {card.energyCost} EN
         </span>
       </div>
 
       <h3 className="mt-5 text-xl font-black text-zinc-50">{card.name}</h3>
-      <p className="mt-3 flex-1 text-sm leading-6 text-zinc-400">{card.description}</p>
 
-      <div className={`mt-4 rounded-xl border px-3 py-2 text-xs font-bold ${getAdviceClasses(advice.tone)}`}>
+      <p className="mt-3 flex-1 text-sm leading-6 text-zinc-400">
+        {card.description}
+      </p>
+
+      <div
+        className={`mt-4 rounded-xl border px-3 py-2 text-xs font-bold ${getAdviceClasses(
+          advice.tone,
+        )}`}
+      >
         <p>{advice.label}</p>
         <p className="mt-1 font-medium opacity-80">{advice.description}</p>
       </div>
@@ -73,6 +98,7 @@ export function TacticalCardView({
           <p className="text-zinc-500">Poder</p>
           <p className="mt-1 text-lg text-zinc-50">{card.basePower}</p>
         </div>
+
         <div className="rounded-xl bg-zinc-950 p-3">
           <p className="text-zinc-500">Riesgo</p>
           <p className="mt-1 text-lg text-zinc-50">{card.risk}</p>

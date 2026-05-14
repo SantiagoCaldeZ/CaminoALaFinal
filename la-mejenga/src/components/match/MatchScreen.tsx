@@ -71,12 +71,15 @@ export function MatchScreen({
   }, [matchState]);
 
   const availableCards = useMemo(() => {
-    if (!currentSituation) {
+    if (!currentSituation || !matchState) {
       return [];
     }
 
-    return getAvailableCardsForSituation(currentSituation);
-  }, [currentSituation]);
+    return getAvailableCardsForSituation(
+      currentSituation,
+      matchState.playerTeam,
+    );
+  }, [currentSituation, matchState]);
 
   function handleSelectTeam(team: Team) {
     const rivalTeam = getDefaultRivalTeam(team.id);

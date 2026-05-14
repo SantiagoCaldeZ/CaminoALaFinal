@@ -13,10 +13,15 @@ import type {
 } from "./types";
 import { pickRandom, shuffle, uniqueById } from "./utils";
 import { getInitialEnergy, getInitialMomentum } from "./team-effects";
+import { getCardsForTeamSituation } from "./team-card-identity";
 
+function createMatchId(): string {
+  return `match-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+}
 
 export function startMatch(playerTeam: Team, rivalTeam: Team): MatchState {
   return {
+    id: createMatchId(),
     playerTeam,
     rivalTeam,
     playerScore: 0,
@@ -46,7 +51,20 @@ export function getCurrentSituation(matchState: MatchState): MatchSituation {
   return situation;
 }
 
-export function getAvailableCardsForSituation(situation: MatchSituation): TacticalCard[] {
+export function getAvailableCardsForSituation(
+  situation: MatchSituation,
+  team?: {
+    id: string;
+    style?: string;
+    stats?: {
+      attack: number;
+      defense: number;
+      midfield: number;
+      energy: number;
+      mentality: number;
+    };
+  },
+): TacticalCard[] {
   const preferredCards = TACTICAL_CARDS.filter(
     (card) =>
       situation.preferredCardTypes.includes(card.type) ||
@@ -57,20 +75,18 @@ export function getAvailableCardsForSituation(situation: MatchSituation): Tactic
     (card) => !preferredCards.some((preferredCard) => preferredCard.id === card.id),
   );
 
-  const selectedPreferred = shuffle(preferredCards).slice(0, 3);
-  const selectedOther = shuffle(otherCards).slice(0, BALANCE.cardsPerHand - selectedPreferred.length);
+  const candidateCards = [...preferredCards, ...otherCards];
 
-  const hand = uniqueById([...selectedPreferred, ...selectedOther]);
-
-  if (hand.length >= BALANCE.cardsPerHand) {
-    return hand.slice(0, BALANCE.cardsPerHand);
+  if (!team) {
+    return shuffle(candidateCards).slice(0, 4);
   }
 
-  const fallback = shuffle(
-    TACTICAL_CARDS.filter((card) => !hand.some((selectedCard) => selectedCard.id === card.id)),
-  );
-
-  return uniqueById([...hand, ...fallback]).slice(0, BALANCE.cardsPerHand);
+  return getCardsForTeamSituation({
+    cards: candidateCards,
+    situation,
+    team,
+    limit: 4,
+  });
 }
 
 function selectProtagonist(team: Team, card: TacticalCard): Player {
@@ -139,7 +155,10 @@ export function playMoment({ matchState, playerCard }: PlayMomentParams): MatchS
   }
 
   const situation = getCurrentSituation(matchState);
-  const rivalAvailableCards = getAvailableCardsForSituation(situation);
+  const rivalAvailableCards = getAvailableCardsForSituation(
+    situation,
+    matchState.rivalTeam,
+  );
 
   const rivalCard = chooseAiCard({
     matchState,

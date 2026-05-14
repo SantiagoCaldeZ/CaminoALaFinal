@@ -1,7 +1,15 @@
+"use client";
+
 import type { MatchState } from "@/lib/game/types";
 import { getFinalMatchReport } from "@/lib/game/final-match-report";
 import { Panel } from "@/components/ui/Panel";
 import { MatchHistory } from "./MatchHistory";
+import { useEffect, useState } from "react";
+import {
+  awardMatchProgression,
+  type MatchProgressionReward,
+} from "@/lib/game/progression";
+import { ProgressionPanel } from "./ProgressionPanel";
 
 type FinalSummaryProps = {
   matchState: MatchState;
@@ -21,6 +29,14 @@ export function FinalSummary({
   showQuickActions = true,
 }: FinalSummaryProps) {
   const report = getFinalMatchReport(matchState);
+
+  const [progressionReward, setProgressionReward] =
+  useState<MatchProgressionReward | null>(null);
+
+  useEffect(() => {
+    const reward = awardMatchProgression(matchState);
+    setProgressionReward(reward);
+  }, [matchState]);
 
   return (
     <div className="space-y-5">
@@ -94,6 +110,7 @@ export function FinalSummary({
         </div>
       </section>
 
+      <ProgressionPanel reward={progressionReward} />
       <section className="grid gap-5 lg:grid-cols-3">
         <Panel>
           <p className="text-xs font-black uppercase tracking-wide text-emerald-300">

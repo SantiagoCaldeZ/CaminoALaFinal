@@ -2,6 +2,7 @@ import Link from "next/link";
 import type { PlayerRole } from "@/lib/game/types";
 import { getTeamStyleLabel, type Team } from "@/lib/game/teams";
 import { getMatchPreview } from "@/lib/game/match-preview";
+import { getTeamSignatureCard } from "@/lib/game/signature-cards";
 
 type PreMatchScreenProps = {
   playerTeam: Team;
@@ -48,6 +49,7 @@ function TeamPreviewCard({
   label: string;
 }) {
   const mainPlayers = team.players.slice(0, 3);
+  const signatureCard = getTeamSignatureCard(team.id);
 
   return (
     <article className="rounded-2xl border border-zinc-800 bg-zinc-950/70 p-5">
@@ -85,6 +87,39 @@ function TeamPreviewCard({
         <StatBar label="Energía" value={team.stats.energy} />
         <StatBar label="Mentalidad" value={team.stats.mentality} />
       </div>
+
+      {signatureCard && (
+        <div className="mb-5 rounded-xl border border-amber-300/30 bg-amber-300/10 p-4">
+          <p className="text-xs font-black uppercase tracking-wide text-amber-300">
+            Carta insignia
+          </p>
+
+          <h3 className="mt-2 text-lg font-black text-zinc-50">
+            {signatureCard.name}
+          </h3>
+
+          <p className="mt-2 text-sm leading-6 text-zinc-300">
+            {signatureCard.description}
+          </p>
+
+          <div className="mt-3 grid grid-cols-3 gap-2 text-xs">
+            <div className="rounded-lg bg-black/30 p-2">
+              <p className="text-zinc-500">Poder</p>
+              <p className="font-black text-zinc-100">{signatureCard.basePower}</p>
+            </div>
+
+            <div className="rounded-lg bg-black/30 p-2">
+              <p className="text-zinc-500">Riesgo</p>
+              <p className="font-black text-zinc-100">{signatureCard.risk}</p>
+            </div>
+
+            <div className="rounded-lg bg-black/30 p-2">
+              <p className="text-zinc-500">Energía</p>
+              <p className="font-black text-zinc-100">{signatureCard.energyCost}</p>
+            </div>
+          </div>
+        </div>
+      )}
 
       <div className="grid gap-4 md:grid-cols-2">
         <div className="rounded-xl bg-zinc-900/80 p-4">

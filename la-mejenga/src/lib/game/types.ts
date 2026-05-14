@@ -97,6 +97,7 @@ export type MatchSituation = {
 };
 
 export type MatchState = {
+  id: string;
   playerTeam: Team;
   rivalTeam: Team;
   playerScore: number;
