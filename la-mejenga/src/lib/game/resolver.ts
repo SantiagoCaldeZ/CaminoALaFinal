@@ -14,6 +14,7 @@ import {
   getTeamStylePressureModifier,
   getTeamStyleScoreModifier,
 } from "./team-effects";
+import { getTeamTacticalModifier } from "./team-tactics";
 
 function getRelevantStatModifier(params: ResolvePlayParams): number {
   const { situation, playerCard, protagonist } = params;
@@ -359,6 +360,21 @@ export function resolvePlay(params: ResolvePlayParams): MatchEvent {
   const randomModifier = randomBetween(BALANCE.randomMin, BALANCE.randomMax);
   const scoringIntentModifier = getScoringIntentModifier(playerCard);
 
+  const teamTacticalModifier = getTeamTacticalModifier({
+    team: matchState.playerTeam,
+    rivalTeam: matchState.rivalTeam,
+    card: playerCard,
+    situation,
+  });
+
+  const rivalTeamTacticalModifier = getTeamTacticalModifier({
+    team: matchState.rivalTeam,
+    rivalTeam: matchState.playerTeam,
+    card: rivalCard,
+    situation,
+    isRival: true,
+  });
+
   const teamStyleScoreModifier = getTeamStyleScoreModifier(
     matchState.playerTeam,
     playerCard,
@@ -370,6 +386,13 @@ export function resolvePlay(params: ResolvePlayParams): MatchEvent {
     rivalCard,
     situation,
   );
+  const playerIdentityModifier = Math.round(
+    (teamTacticalModifier + teamStyleScoreModifier) / 2,
+  );
+
+  const rivalIdentityPressureModifier = Math.round(
+    (rivalTeamTacticalModifier + rivalTeamPressureModifier) / 2,
+  );
   const rawScore =
     playerCard.basePower +
     statModifier +
@@ -378,10 +401,10 @@ export function resolvePlay(params: ResolvePlayParams): MatchEvent {
     momentumModifier +
     situationModifier +
     scoringIntentModifier +
-    teamStyleScoreModifier +
+    playerIdentityModifier +
     randomModifier -
     rivalPressureModifier -
-    rivalTeamPressureModifier -
+    rivalIdentityPressureModifier -
     riskPenalty;
 
   const scoreValue = clamp(Math.round(rawScore), 0, 120);

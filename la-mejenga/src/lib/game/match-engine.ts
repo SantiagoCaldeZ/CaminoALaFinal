@@ -1,6 +1,6 @@
 import { BALANCE } from "./balance";
 import { TACTICAL_CARDS } from "./cards";
-import { chooseAiCard } from "./ai";
+import { chooseAiCard } from "./ai-tactics";
 import { resolvePlay } from "./resolver";
 import { MATCH_SITUATIONS } from "./situations";
 import type {
@@ -13,6 +13,7 @@ import type {
 } from "./types";
 import { pickRandom, shuffle, uniqueById } from "./utils";
 import { getInitialEnergy, getInitialMomentum } from "./team-effects";
+
 
 export function startMatch(playerTeam: Team, rivalTeam: Team): MatchState {
   return {
@@ -141,9 +142,10 @@ export function playMoment({ matchState, playerCard }: PlayMomentParams): MatchS
   const rivalAvailableCards = getAvailableCardsForSituation(situation);
 
   const rivalCard = chooseAiCard({
+    matchState,
     situation,
     availableCards: rivalAvailableCards,
-    matchState,
+    playerCard,
   });
 
   const protagonist = selectProtagonist(matchState.playerTeam, playerCard);
