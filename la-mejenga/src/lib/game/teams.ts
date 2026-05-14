@@ -279,13 +279,26 @@ export const TEAMS: Team[] = [
   },
 ];
 
+export function findTeamById(teamId: string | null | undefined): Team | undefined {
+  if (!teamId) {
+    return undefined;
+  }
+
+  return TEAMS.find((team) => team.id === teamId);
+}
+
 export function getTeamById(teamId: string | null | undefined): Team {
-  return TEAMS.find((team) => team.id === teamId) ?? TEAMS[0];
+  return findTeamById(teamId) ?? TEAMS[0];
 }
 
 export function getRandomRivalTeam(playerTeamId: string): Team {
   const availableTeams = TEAMS.filter((team) => team.id !== playerTeamId);
-  return availableTeams[Math.floor(Math.random() * availableTeams.length)] ?? TEAMS[0];
+
+  if (availableTeams.length === 0) {
+    return TEAMS[0];
+  }
+
+  return availableTeams[Math.floor(Math.random() * availableTeams.length)];
 }
 
 export function getTeamStyleLabel(style: TeamStyle): string {
@@ -311,7 +324,9 @@ export function getDefaultRivalTeam(playerTeamId?: string): Team {
     "real-lajuelita": "barrio-norte",
   };
 
-  const defaultRivalId = playerTeamId ? defaultRivalByTeamId[playerTeamId] : undefined;
+  const defaultRivalId = playerTeamId
+    ? defaultRivalByTeamId[playerTeamId]
+    : undefined;
 
   const defaultRival = TEAMS.find(
     (team) => team.id === defaultRivalId && team.id !== playerTeamId,
@@ -322,4 +337,17 @@ export function getDefaultRivalTeam(playerTeamId?: string): Team {
   }
 
   return TEAMS.find((team) => team.id !== playerTeamId) ?? TEAMS[0];
+}
+
+export function getValidRivalTeam(
+  playerTeamId: string,
+  rivalTeamId: string | null | undefined,
+): Team {
+  const requestedRival = findTeamById(rivalTeamId);
+
+  if (requestedRival && requestedRival.id !== playerTeamId) {
+    return requestedRival;
+  }
+
+  return getDefaultRivalTeam(playerTeamId);
 }

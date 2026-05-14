@@ -1,5 +1,6 @@
+import { redirect } from "next/navigation";
 import { MatchScreen } from "@/components/match/MatchScreen";
-import { getDefaultRivalTeam, getTeamById } from "@/lib/game/teams";
+import { findTeamById, getValidRivalTeam } from "@/lib/game/teams";
 
 type MatchPageProps = {
   searchParams: Promise<{
@@ -11,13 +12,17 @@ type MatchPageProps = {
 export default async function MatchPage({ searchParams }: MatchPageProps) {
   const params = await searchParams;
 
-  const playerTeam = params.team ? getTeamById(params.team) : undefined;
+  const playerTeam = findTeamById(params.team);
 
-  const rivalTeam = playerTeam
-    ? params.rival
-      ? getTeamById(params.rival)
-      : getDefaultRivalTeam(playerTeam.id)
-    : undefined;
+  if (!playerTeam) {
+    redirect("/teams");
+  }
+
+  const rivalTeam = getValidRivalTeam(playerTeam.id, params.rival);
+
+  if (params.rival !== rivalTeam.id) {
+    redirect(`/match?team=${playerTeam.id}&rival=${rivalTeam.id}`);
+  }
 
   return (
     <main className="min-h-screen bg-zinc-950 px-4 py-8 text-zinc-50 md:px-8">

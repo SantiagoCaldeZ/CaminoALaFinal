@@ -19,7 +19,7 @@ export default function HomePage() {
 
         <div className="mt-8 flex flex-col gap-3 sm:flex-row">
           <Link
-            href="/match"
+            href="/teams"
             className="rounded-2xl bg-emerald-400 px-6 py-3 font-bold text-zinc-950 transition hover:bg-emerald-300"
           >
             Jugar partido rápido
