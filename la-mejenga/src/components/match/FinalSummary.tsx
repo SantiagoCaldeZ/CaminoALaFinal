@@ -7,12 +7,18 @@ type FinalSummaryProps = {
   matchState: MatchState;
   onRestart: () => void;
   onChangeTeam: () => void;
+  onContinue?: () => void;
+  continueLabel?: string;
+  showQuickActions?: boolean;
 };
 
 export function FinalSummary({
   matchState,
   onRestart,
   onChangeTeam,
+  onContinue,
+  continueLabel = "Continuar",
+  showQuickActions = true,
 }: FinalSummaryProps) {
   const report = getFinalMatchReport(matchState);
 
@@ -56,21 +62,35 @@ export function FinalSummary({
         </div>
 
         <div className="mt-6 flex flex-wrap justify-center gap-3">
-          <button
-            type="button"
-            onClick={onRestart}
-            className="rounded-xl bg-emerald-400 px-6 py-3 text-sm font-black text-black transition hover:bg-emerald-300"
-          >
-            Jugar de nuevo
-          </button>
+          {onContinue && (
+            <button
+              type="button"
+              onClick={onContinue}
+              className="rounded-xl bg-emerald-400 px-6 py-3 text-sm font-black text-black transition hover:bg-emerald-300"
+            >
+              {continueLabel}
+            </button>
+          )}
 
-          <button
-            type="button"
-            onClick={onChangeTeam}
-            className="rounded-xl border border-zinc-700 px-6 py-3 text-sm font-black text-zinc-100 transition hover:bg-zinc-900"
-          >
-            Cambiar equipos
-          </button>
+          {showQuickActions && (
+            <>
+              <button
+                type="button"
+                onClick={onRestart}
+                className="rounded-xl bg-emerald-400 px-6 py-3 text-sm font-black text-black transition hover:bg-emerald-300"
+              >
+                Jugar de nuevo
+              </button>
+
+              <button
+                type="button"
+                onClick={onChangeTeam}
+                className="rounded-xl border border-zinc-700 px-6 py-3 text-sm font-black text-zinc-100 transition hover:bg-zinc-900"
+              >
+                Cambiar equipos
+              </button>
+            </>
+          )}
         </div>
       </section>
 

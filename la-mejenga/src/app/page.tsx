@@ -24,6 +24,12 @@ export default function HomePage() {
           >
             Jugar partido rápido
           </Link>
+          <Link
+            href="/camino"
+            className="rounded-xl bg-emerald-400 px-5 py-3 text-sm font-black text-black transition hover:bg-emerald-300"
+          >
+            Camino a la Final
+          </Link>
         </div>
       </section>
     </main>

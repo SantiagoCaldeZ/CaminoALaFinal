@@ -33,11 +33,17 @@ type MatchUiPhase =
 type MatchScreenProps = {
   initialPlayerTeam?: Team;
   initialRivalTeam?: Team;
+  onContinueAfterFinal?: (matchState: MatchState) => void;
+  continueAfterFinalLabel?: string;
+  showFinalQuickActions?: boolean;
 };
 
 export function MatchScreen({
   initialPlayerTeam,
   initialRivalTeam,
+  onContinueAfterFinal,
+  continueAfterFinalLabel,
+  showFinalQuickActions = true,
 }: MatchScreenProps) {
   const hasInitialTeams = Boolean(initialPlayerTeam && initialRivalTeam);
   const router = useRouter();
@@ -166,6 +172,13 @@ export function MatchScreen({
         matchState={matchState}
         onRestart={handleRestart}
         onChangeTeam={handleChangeTeam}
+        onContinue={
+          onContinueAfterFinal
+            ? () => onContinueAfterFinal(matchState)
+            : undefined
+        }
+        continueLabel={continueAfterFinalLabel}
+        showQuickActions={showFinalQuickActions}
       />
     );
   }
