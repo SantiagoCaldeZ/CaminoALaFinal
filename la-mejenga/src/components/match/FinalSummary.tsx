@@ -93,7 +93,7 @@ export function FinalSummary({ matchState, onRestart, onChangeTeam }: FinalSumma
         </div>
       </Panel>
 
-      <MatchHistory history={matchState.history} />
+      <MatchHistory events={matchState.history} />
     </div>
   );
 }

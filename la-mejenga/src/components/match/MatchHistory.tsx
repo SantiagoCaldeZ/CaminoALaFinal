@@ -1,57 +1,67 @@
-import { getOutcomeMeta } from "@/lib/game/outcome-meta";
 import type { MatchEvent } from "@/lib/game/types";
-import { Badge } from "@/components/ui/Badge";
-import { Panel } from "@/components/ui/Panel";
+import { formatMatchEvent } from "@/lib/game/event-formatters";
+import { EventBadge } from "./EventBadge";
 
 type MatchHistoryProps = {
-  history: MatchEvent[];
+  events: MatchEvent[];
 };
 
-function getBadgeVariant(tone: ReturnType<typeof getOutcomeMeta>["tone"]): "success" | "danger" | "warning" | "info" | "default" {
-  if (tone === "success") return "success";
-  if (tone === "danger") return "danger";
-  if (tone === "warning") return "warning";
-  if (tone === "info") return "info";
-  return "default";
-}
-
-export function MatchHistory({ history }: MatchHistoryProps) {
-  const latest = history.slice(-5).reverse();
+export function MatchHistory({ events }: MatchHistoryProps) {
+  const recentEvents = events.slice().reverse();
 
   return (
-    <Panel>
-      <h2 className="text-lg font-black text-zinc-50">Historial reciente</h2>
+    <aside className="rounded-2xl border border-zinc-800 bg-zinc-950/70 p-5">
+      <div className="mb-4">
+        <p className="text-xs font-black uppercase tracking-wide text-emerald-300">
+          Crónica
+        </p>
+        <h2 className="text-xl font-black text-zinc-50">Historial reciente</h2>
+      </div>
 
-      {latest.length === 0 ? (
-        <p className="mt-3 text-sm text-zinc-500">Todavía no hay jugadas registradas.</p>
+      {recentEvents.length === 0 ? (
+        <p className="text-sm text-zinc-500">Todavía no hay jugadas registradas.</p>
       ) : (
-        <div className="mt-4 space-y-3">
-          {latest.map((event) => {
-            const meta = getOutcomeMeta(event.outcome);
+        <div className="space-y-3">
+          {recentEvents.map((event) => {
+            const formattedEvent = formatMatchEvent(event);
 
             return (
-              <article key={event.id} className="rounded-xl bg-zinc-950 p-4">
-                <div className="flex items-start justify-between gap-3">
+              <article
+                key={event.id}
+                className="rounded-xl border border-zinc-900 bg-black/40 p-4"
+              >
+                <div className="mb-3 flex items-start justify-between gap-3">
                   <div>
-                    <p className="text-xs font-bold text-emerald-300">Min {event.minute}</p>
-                    <p className="mt-1 text-sm font-black text-zinc-100">{meta.label}</p>
-                    <p className="mt-1 line-clamp-2 text-xs leading-5 text-zinc-500">
-                      {event.narration}
+                    <p className="text-xs font-black uppercase text-emerald-300">
+                      Min {event.minute}
                     </p>
+                    <h3 className="mt-1 text-base font-black text-zinc-50">
+                      {formattedEvent.title}
+                    </h3>
                   </div>
 
-                  <div className="text-right">
-                    <Badge variant={getBadgeVariant(meta.tone)}>{meta.label}</Badge>
-                    <p className="mt-2 text-sm font-black text-zinc-300">
-                      {event.playerScore} - {event.rivalScore}
-                    </p>
-                  </div>
+                  <EventBadge label={formattedEvent.label} tone={formattedEvent.tone} />
+                </div>
+
+                <p className="text-sm leading-relaxed text-zinc-400">
+                  {formattedEvent.shortDescription}
+                </p>
+
+                <div className="mt-3 flex flex-wrap items-center justify-between gap-2 border-t border-zinc-900 pt-3">
+                  <p className="text-xs font-bold text-zinc-500">
+                    Impacto:{" "}
+                    <span className="text-zinc-300">{formattedEvent.impact}</span>
+                  </p>
+
+                  <p className="rounded-lg bg-zinc-950 px-3 py-1 text-sm font-black text-zinc-50">
+                    {event.playerScore} - {event.rivalScore}
+                  </p>
                 </div>
               </article>
             );
           })}
         </div>
       )}
-    </Panel>
+    </aside>
   );
 }

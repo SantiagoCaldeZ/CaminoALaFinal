@@ -21,6 +21,7 @@ import { MatchHistory } from "./MatchHistory";
 import { FinalSummary } from "./FinalSummary";
 import { PreMatchScreen } from "./PreMatchScreen";
 import { useRouter } from "next/navigation";
+import { LiveMatchPanel } from "./LiveMatchPanel";
 
 type MatchUiPhase =
   | "team_select"
@@ -173,6 +174,11 @@ export function MatchScreen({
     <div className="space-y-5">
       <Scoreboard matchState={matchState} currentMinute={currentSituation?.minute} />
 
+      <LiveMatchPanel
+        matchState={matchState}
+        currentMinute={currentSituation?.minute}
+      />
+
       <div className="grid gap-5 lg:grid-cols-[1fr_340px]">
         <div className="space-y-5">
           {currentSituation && phase === "choosing_card" && (
@@ -234,7 +240,7 @@ export function MatchScreen({
             </div>
           </Panel>
 
-          <MatchHistory history={matchState.history} />
+          <MatchHistory events={matchState.history} />
         </aside>
       </div>
     </div>
