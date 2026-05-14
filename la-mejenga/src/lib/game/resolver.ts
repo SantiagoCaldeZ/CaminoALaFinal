@@ -8,6 +8,12 @@ import type {
   TacticalCard,
 } from "./types";
 import { clamp, randomBetween } from "./utils";
+import {
+  getRivalThreatModifier,
+  getTeamEnergyCost,
+  getTeamStylePressureModifier,
+  getTeamStyleScoreModifier,
+} from "./team-effects";
 
 function getRelevantStatModifier(params: ResolvePlayParams): number {
   const { situation, playerCard, protagonist } = params;
@@ -143,10 +149,9 @@ function getRiskPenalty(card: TacticalCard): number {
 
 function determineOutcome(
   scoreValue: number,
-  playerCard: TacticalCard,
-  rivalCard: TacticalCard,
-  situation: MatchSituation,
+  params: ResolvePlayParams,
 ): PlayOutcome {
+  const { playerCard, rivalCard, situation } = params;
   const canPlayerScoreDirectly =
     playerCard.type === "attack" ||
     playerCard.id === "todo-o-nada" ||
@@ -205,12 +210,17 @@ function determineOutcome(
     (veryBadResolution ? 16 : badResolutionInDanger ? 8 : 0) -
     (playerCard.type === "defense" ? 14 : 0) -
     (playerCard.id === "bloque-bajo" ? 12 : 0) -
-    (playerCard.id === "enfriar-el-partido" ? 8 : 0);
+    (playerCard.id === "enfriar-el-partido" ? 8 : 0) +
+    getRivalThreatModifier(params);
 
   const rivalCounterWindow =
     veryBadResolution || badResolutionInDanger;
 
-  if (rivalCanPunish && rivalCounterWindow && rivalThreatValue >= 0) {
+  if (
+    rivalCanPunish &&
+    rivalCounterWindow &&
+    rivalThreatValue >= BALANCE.rivalGoalThreatThreshold
+  ) {
     return "rival_goal";
   }
 
@@ -349,6 +359,17 @@ export function resolvePlay(params: ResolvePlayParams): MatchEvent {
   const randomModifier = randomBetween(BALANCE.randomMin, BALANCE.randomMax);
   const scoringIntentModifier = getScoringIntentModifier(playerCard);
 
+  const teamStyleScoreModifier = getTeamStyleScoreModifier(
+    matchState.playerTeam,
+    playerCard,
+    situation,
+  );
+
+  const rivalTeamPressureModifier = getTeamStylePressureModifier(
+    matchState.rivalTeam,
+    rivalCard,
+    situation,
+  );
   const rawScore =
     playerCard.basePower +
     statModifier +
@@ -357,15 +378,17 @@ export function resolvePlay(params: ResolvePlayParams): MatchEvent {
     momentumModifier +
     situationModifier +
     scoringIntentModifier +
+    teamStyleScoreModifier +
     randomModifier -
     rivalPressureModifier -
+    rivalTeamPressureModifier -
     riskPenalty;
 
   const scoreValue = clamp(Math.round(rawScore), 0, 120);
-  const outcome = determineOutcome(scoreValue, playerCard, rivalCard, situation);
+  const outcome = determineOutcome(scoreValue, params);
 
-  const playerEnergyChange = -playerCard.energyCost;
-  const rivalEnergyChange = -rivalCard.energyCost;
+  const playerEnergyChange = -getTeamEnergyCost(matchState.playerTeam, playerCard);
+  const rivalEnergyChange = -getTeamEnergyCost(matchState.rivalTeam, rivalCard);
   const { playerMomentumChange, rivalMomentumChange } = getMomentumChanges(outcome);
 
   const playerScore =

@@ -141,7 +141,7 @@ export const TEAMS: Team[] = [
       primary: "#fb7185",
       secondary: "#111827",
     },
-    style: "technical",
+    style: "fast",
     description:
       "Un equipo atrevido, rápido y peligroso arriba. Puede hacer mucho daño, pero también deja espacios.",
     strengths: ["Ataque rápido", "Transiciones peligrosas", "Mucho peso ofensivo"],
@@ -302,5 +302,24 @@ export function getTeamStyleLabel(style: TeamStyle): string {
 }
 
 export function getDefaultRivalTeam(playerTeamId?: string): Team {
-  return TEAMS.find((team) => team.id !== playerTeamId) ?? TEAMS[1] ?? TEAMS[0];
+  const defaultRivalByTeamId: Record<string, string> = {
+    "cemento-fc": "los-del-parque",
+    "los-del-parque": "union-callejon",
+    "barrio-norte": "atletico-pulperia",
+    "atletico-pulperia": "cemento-fc",
+    "union-callejon": "los-del-parque",
+    "real-lajuelita": "barrio-norte",
+  };
+
+  const defaultRivalId = playerTeamId ? defaultRivalByTeamId[playerTeamId] : undefined;
+
+  const defaultRival = TEAMS.find(
+    (team) => team.id === defaultRivalId && team.id !== playerTeamId,
+  );
+
+  if (defaultRival) {
+    return defaultRival;
+  }
+
+  return TEAMS.find((team) => team.id !== playerTeamId) ?? TEAMS[0];
 }

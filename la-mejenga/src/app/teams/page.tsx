@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { TEAMS, getRandomRivalTeam, getTeamStyleLabel } from "@/lib/game/teams";
+import { TEAMS, getDefaultRivalTeam, getTeamStyleLabel } from "@/lib/game/teams";
 
 export default function TeamsPage() {
   return (
@@ -28,7 +28,7 @@ export default function TeamsPage() {
 
         <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
           {TEAMS.map((team) => {
-            const rival = getRandomRivalTeam(team.id);
+            const rival = getDefaultRivalTeam(team.id);
 
             return (
               <article

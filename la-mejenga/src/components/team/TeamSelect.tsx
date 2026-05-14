@@ -1,7 +1,6 @@
 "use client";
 
-import type { Team } from "@/lib/game/types";
-import { TEAMS } from "@/lib/game/teams";
+import { TEAMS, type Team } from "@/lib/game/teams";
 import { Button } from "@/components/ui/Button";
 import { TeamPreview } from "./TeamPreview";
 

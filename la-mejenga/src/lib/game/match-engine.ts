@@ -12,6 +12,7 @@ import type {
   Team,
 } from "./types";
 import { pickRandom, shuffle, uniqueById } from "./utils";
+import { getInitialEnergy, getInitialMomentum } from "./team-effects";
 
 export function startMatch(playerTeam: Team, rivalTeam: Team): MatchState {
   return {
@@ -21,10 +22,10 @@ export function startMatch(playerTeam: Team, rivalTeam: Team): MatchState {
     rivalScore: 0,
     currentMomentIndex: 0,
     totalMoments: BALANCE.totalMoments,
-    playerEnergy: BALANCE.initialEnergy,
-    rivalEnergy: BALANCE.initialEnergy,
-    playerMomentum: BALANCE.initialMomentum,
-    rivalMomentum: BALANCE.initialMomentum,
+    playerEnergy: getInitialEnergy(playerTeam),
+    rivalEnergy: getInitialEnergy(rivalTeam),
+    playerMomentum: getInitialMomentum(playerTeam),
+    rivalMomentum: getInitialMomentum(rivalTeam),
     history: [],
     status: "in_progress",
   };

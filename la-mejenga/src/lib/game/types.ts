@@ -13,6 +13,14 @@ export type TeamStyle =
   | "defensive"
   | "chaotic";
 
+export type TeamStats = {
+  attack: number;
+  defense: number;
+  midfield: number;
+  energy: number;
+  mentality: number;
+};
+
 export type CardType = "attack" | "defense" | "midfield" | "special";
 
 export type SituationType =
@@ -63,6 +71,7 @@ export type Team = {
   strengths: string[];
   weaknesses: string[];
   players: Player[];
+  stats: TeamStats;
 };
 
 export type TacticalCard = {

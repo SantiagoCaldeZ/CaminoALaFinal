@@ -1,14 +1,14 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { getDefaultRivalTeam } from "@/lib/game/teams";
+import { getDefaultRivalTeam, type Team } from "@/lib/game/teams";
 import {
   getAvailableCardsForSituation,
   getCurrentSituation,
   playMoment,
   startMatch,
 } from "@/lib/game/match-engine";
-import type { MatchEvent, MatchState, TacticalCard, Team } from "@/lib/game/types";
+import type { MatchEvent, MatchState, TacticalCard } from "@/lib/game/types";
 import { Panel } from "@/components/ui/Panel";
 import { TeamSelect } from "@/components/team/TeamSelect";
 import { Scoreboard } from "./Scoreboard";
@@ -19,11 +19,39 @@ import { CardHand } from "./CardHand";
 import { PlayResolutionPanel } from "./PlayResolutionPanel";
 import { MatchHistory } from "./MatchHistory";
 import { FinalSummary } from "./FinalSummary";
+import { PreMatchScreen } from "./PreMatchScreen";
+import { useRouter } from "next/navigation";
 
-type MatchUiPhase = "team_select" | "choosing_card" | "resolution" | "finished";
+type MatchUiPhase =
+  | "team_select"
+  | "pre_match"
+  | "choosing_card"
+  | "resolution"
+  | "finished";
 
-export function MatchScreen() {
-  const [phase, setPhase] = useState<MatchUiPhase>("team_select");
+type MatchScreenProps = {
+  initialPlayerTeam?: Team;
+  initialRivalTeam?: Team;
+};
+
+export function MatchScreen({
+  initialPlayerTeam,
+  initialRivalTeam,
+}: MatchScreenProps) {
+  const hasInitialTeams = Boolean(initialPlayerTeam && initialRivalTeam);
+  const router = useRouter();
+
+  const [phase, setPhase] = useState<MatchUiPhase>(
+    hasInitialTeams ? "pre_match" : "team_select"
+  );
+
+  const [selectedPlayerTeam, setSelectedPlayerTeam] = useState<Team | null>(
+    initialPlayerTeam ?? null
+  );
+
+  const [selectedRivalTeam, setSelectedRivalTeam] = useState<Team | null>(
+    initialRivalTeam ?? null
+  );
   const [matchState, setMatchState] = useState<MatchState | null>(null);
   const [lastEvent, setLastEvent] = useState<MatchEvent | null>(null);
 
@@ -45,7 +73,21 @@ export function MatchScreen() {
 
   function handleSelectTeam(team: Team) {
     const rivalTeam = getDefaultRivalTeam(team.id);
-    const newMatch = startMatch(team, rivalTeam);
+
+    setSelectedPlayerTeam(team);
+    setSelectedRivalTeam(rivalTeam);
+    setMatchState(null);
+    setLastEvent(null);
+    setPhase("pre_match");
+  }
+
+  function handleStartMatch() {
+    if (!selectedPlayerTeam || !selectedRivalTeam) {
+      setPhase("team_select");
+      return;
+    }
+
+    const newMatch = startMatch(selectedPlayerTeam, selectedRivalTeam);
 
     setMatchState(newMatch);
     setLastEvent(null);
@@ -85,18 +127,35 @@ export function MatchScreen() {
     }
 
     const newMatch = startMatch(matchState.playerTeam, matchState.rivalTeam);
+
     setMatchState(newMatch);
     setLastEvent(null);
     setPhase("choosing_card");
   }
 
   function handleChangeTeam() {
-    setMatchState(null);
-    setLastEvent(null);
-    setPhase("team_select");
+    router.push("/teams");
   }
 
-  if (phase === "team_select" || !matchState) {
+  if (phase === "team_select") {
+    return <TeamSelect onSelectTeam={handleSelectTeam} />;
+  }
+
+  if (phase === "pre_match") {
+    if (!selectedPlayerTeam || !selectedRivalTeam) {
+      return <TeamSelect onSelectTeam={handleSelectTeam} />;
+    }
+
+    return (
+      <PreMatchScreen
+        playerTeam={selectedPlayerTeam}
+        rivalTeam={selectedRivalTeam}
+        onStartMatch={handleStartMatch}
+      />
+    );
+  }
+
+  if (!matchState) {
     return <TeamSelect onSelectTeam={handleSelectTeam} />;
   }
 
@@ -144,12 +203,34 @@ export function MatchScreen() {
 
         <aside className="space-y-5">
           <Panel>
-            <h2 className="mb-4 text-lg font-black text-zinc-50">Estado del partido</h2>
+            <h2 className="mb-4 text-lg font-black text-zinc-50">
+              Estado del partido
+            </h2>
+
             <div className="space-y-5">
-              <EnergyBar label={`Energía · ${matchState.playerTeam.name}`} value={matchState.playerEnergy} variant="emerald" />
-              <MomentumBar label={`Momentum · ${matchState.playerTeam.name}`} value={matchState.playerMomentum} variant="sky" />
-              <EnergyBar label={`Energía · ${matchState.rivalTeam.name}`} value={matchState.rivalEnergy} variant="red" />
-              <MomentumBar label={`Momentum · ${matchState.rivalTeam.name}`} value={matchState.rivalMomentum} variant="amber" />
+              <EnergyBar
+                label={`Energía · ${matchState.playerTeam.name}`}
+                value={matchState.playerEnergy}
+                variant="emerald"
+              />
+
+              <MomentumBar
+                label={`Momentum · ${matchState.playerTeam.name}`}
+                value={matchState.playerMomentum}
+                variant="sky"
+              />
+
+              <EnergyBar
+                label={`Energía · ${matchState.rivalTeam.name}`}
+                value={matchState.rivalEnergy}
+                variant="red"
+              />
+
+              <MomentumBar
+                label={`Momentum · ${matchState.rivalTeam.name}`}
+                value={matchState.rivalMomentum}
+                variant="amber"
+              />
             </div>
           </Panel>
 

@@ -12,6 +12,7 @@ export const BALANCE = {
   chanceThreshold: 68,
   possessionThreshold: 52,
   neutralThreshold: 36,
+  rivalGoalThreatThreshold: 88,
 
   minValue: 0,
   maxValue: 100,
