@@ -1,99 +1,149 @@
-import { getMatchWinner } from "@/lib/game/match-engine";
-import type { MatchEvent, MatchState } from "@/lib/game/types";
-import { Button } from "@/components/ui/Button";
+import type { MatchState } from "@/lib/game/types";
+import { getFinalMatchReport } from "@/lib/game/final-match-report";
 import { Panel } from "@/components/ui/Panel";
 import { MatchHistory } from "./MatchHistory";
 
- type FinalSummaryProps = {
+type FinalSummaryProps = {
   matchState: MatchState;
   onRestart: () => void;
   onChangeTeam: () => void;
 };
 
-function getFeaturedEvent(history: MatchEvent[]): MatchEvent | null {
-  const goal = history.find((event) => event.outcome === "goal");
-
-  if (goal) {
-    return goal;
-  }
-
-  const chance = history.find((event) => event.outcome === "chance_created" || event.outcome === "shot_saved");
-
-  if (chance) {
-    return chance;
-  }
-
-  return history.at(-1) ?? null;
-}
-
-export function FinalSummary({ matchState, onRestart, onChangeTeam }: FinalSummaryProps) {
-  const winner = getMatchWinner(matchState);
-  const featuredEvent = getFeaturedEvent(matchState.history);
-
-  const title =
-    winner === "player"
-      ? `Ganó ${matchState.playerTeam.name}`
-      : winner === "rival"
-        ? `Ganó ${matchState.rivalTeam.name}`
-        : "Empate cerrado";
-
-  const subtitle =
-    winner === "player"
-      ? "Tu equipo cerró mejor los momentos clave."
-      : winner === "rival"
-        ? "El rival aprovechó mejor sus oportunidades."
-        : "Nadie logró romper definitivamente el partido.";
+export function FinalSummary({
+  matchState,
+  onRestart,
+  onChangeTeam,
+}: FinalSummaryProps) {
+  const report = getFinalMatchReport(matchState);
 
   return (
     <div className="space-y-5">
-      <Panel className="border-emerald-400/40 bg-emerald-400/10">
-        <p className="text-sm font-bold text-emerald-300">Resumen final</p>
-        <h1 className="mt-1 text-3xl font-black text-zinc-50">{title}</h1>
-        <p className="mt-2 text-sm leading-6 text-zinc-300">{subtitle}</p>
-
-        <p className="mt-5 text-6xl font-black text-zinc-50">
-          {matchState.playerScore} - {matchState.rivalScore}
+      <section className="rounded-3xl border border-zinc-800 bg-zinc-950 p-6 text-center shadow-xl shadow-black/20">
+        <p className="text-sm font-black uppercase tracking-wide text-emerald-300">
+          Final del partido
         </p>
 
-        <div className="mt-6 grid gap-3 md:grid-cols-4">
-          <div className="rounded-xl bg-zinc-950 p-4">
-            <p className="text-sm text-zinc-500">Energía final</p>
-            <p className="text-xl font-black text-zinc-50">{matchState.playerEnergy}</p>
-          </div>
-          <div className="rounded-xl bg-zinc-950 p-4">
-            <p className="text-sm text-zinc-500">Momentum final</p>
-            <p className="text-xl font-black text-zinc-50">{matchState.playerMomentum}</p>
-          </div>
-          <div className="rounded-xl bg-zinc-950 p-4">
-            <p className="text-sm text-zinc-500">Jugadas</p>
-            <p className="text-xl font-black text-zinc-50">{matchState.history.length}</p>
-          </div>
-          <div className="rounded-xl bg-zinc-950 p-4">
-            <p className="text-sm text-zinc-500">Goles</p>
-            <p className="text-xl font-black text-zinc-50">
-              {matchState.playerScore + matchState.rivalScore}
+        <h1 className="mt-3 text-4xl font-black text-zinc-50">
+          {report.resultTitle}
+        </h1>
+
+        <p className="mx-auto mt-3 max-w-2xl text-sm leading-6 text-zinc-400">
+          {report.resultSubtitle}
+        </p>
+
+        <div className="mt-6 grid items-center gap-4 md:grid-cols-[1fr_auto_1fr]">
+          <div className="rounded-2xl border border-zinc-800 bg-black/30 p-5">
+            <p className="text-xs font-black uppercase tracking-wide text-emerald-300">
+              Tu equipo
             </p>
+            <h2 className="mt-2 text-2xl font-black text-zinc-50">
+              {matchState.playerTeam.name}
+            </h2>
+          </div>
+
+          <div className="rounded-2xl bg-emerald-400 px-8 py-5 text-4xl font-black text-black">
+            {matchState.playerScore} - {matchState.rivalScore}
+          </div>
+
+          <div className="rounded-2xl border border-zinc-800 bg-black/30 p-5">
+            <p className="text-xs font-black uppercase tracking-wide text-rose-300">
+              Rival
+            </p>
+            <h2 className="mt-2 text-2xl font-black text-zinc-50">
+              {matchState.rivalTeam.name}
+            </h2>
           </div>
         </div>
 
-        {featuredEvent && (
-          <div className="mt-6 rounded-2xl border border-zinc-800 bg-zinc-950 p-5">
-            <p className="text-xs font-bold uppercase tracking-wide text-emerald-300">
-              Jugada destacada · Min {featuredEvent.minute}
-            </p>
-            <p className="mt-2 text-sm leading-7 text-zinc-300">{featuredEvent.narration}</p>
-          </div>
-        )}
+        <div className="mt-6 flex flex-wrap justify-center gap-3">
+          <button
+            type="button"
+            onClick={onRestart}
+            className="rounded-xl bg-emerald-400 px-6 py-3 text-sm font-black text-black transition hover:bg-emerald-300"
+          >
+            Jugar de nuevo
+          </button>
 
-        <div className="mt-6 flex flex-col gap-3 sm:flex-row">
-          <Button onClick={onRestart}>Jugar de nuevo</Button>
-          <Button variant="secondary" onClick={onChangeTeam}>
-            Cambiar equipo
-          </Button>
+          <button
+            type="button"
+            onClick={onChangeTeam}
+            className="rounded-xl border border-zinc-700 px-6 py-3 text-sm font-black text-zinc-100 transition hover:bg-zinc-900"
+          >
+            Cambiar equipos
+          </button>
         </div>
+      </section>
+
+      <section className="grid gap-5 lg:grid-cols-3">
+        <Panel>
+          <p className="text-xs font-black uppercase tracking-wide text-emerald-300">
+            Figura del partido
+          </p>
+          <h2 className="mt-2 text-2xl font-black text-zinc-50">
+            {report.figureName}
+          </h2>
+          <p className="mt-3 text-sm leading-6 text-zinc-400">
+            {report.figureReason}
+          </p>
+        </Panel>
+
+        <Panel>
+          <p className="text-xs font-black uppercase tracking-wide text-amber-300">
+            Momento clave
+          </p>
+          <h2 className="mt-2 text-xl font-black text-zinc-50">
+            {report.keyMomentTitle}
+          </h2>
+          <p className="mt-3 text-sm leading-6 text-zinc-400">
+            {report.keyMomentDescription}
+          </p>
+        </Panel>
+
+        <Panel>
+          <p className="text-xs font-black uppercase tracking-wide text-sky-300">
+            Rendimiento
+          </p>
+          <h2 className="mt-2 text-2xl font-black text-zinc-50">
+            {report.performanceLabel}
+          </h2>
+          <p className="mt-3 text-sm leading-6 text-zinc-400">
+            {report.performanceDescription}
+          </p>
+        </Panel>
+      </section>
+
+      <Panel>
+        <p className="text-xs font-black uppercase tracking-wide text-zinc-500">
+          Lectura táctica final
+        </p>
+        <p className="mt-3 text-base leading-7 text-zinc-300">
+          {report.tacticalReading}
+        </p>
       </Panel>
 
+      <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+        <SummaryStat label="Goles a favor" value={report.stats.playerGoals} />
+        <SummaryStat label="Goles rivales" value={report.stats.rivalGoals} />
+        <SummaryStat label="Ocasiones generadas" value={report.stats.playerChances} />
+        <SummaryStat label="Amenazas rivales" value={report.stats.rivalThreats} />
+        <SummaryStat label="Atajadas" value={report.stats.saves} />
+        <SummaryStat label="Pérdidas/intercepciones" value={report.stats.turnovers} />
+        <SummaryStat label="Energía final" value={report.stats.finalPlayerEnergy} />
+        <SummaryStat label="Momentum final" value={report.stats.finalPlayerMomentum} />
+      </section>
+
       <MatchHistory events={matchState.history} />
+    </div>
+  );
+}
+
+function SummaryStat({ label, value }: { label: string; value: number }) {
+  return (
+    <div className="rounded-2xl border border-zinc-800 bg-zinc-950 p-5">
+      <p className="text-xs font-black uppercase tracking-wide text-zinc-500">
+        {label}
+      </p>
+      <p className="mt-2 text-3xl font-black text-zinc-50">{value}</p>
     </div>
   );
 }
